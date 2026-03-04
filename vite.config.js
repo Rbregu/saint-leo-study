@@ -5,6 +5,5 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true,
-    allowedHosts: ["dimensionless-lupe-overpromptly.ngrok-free.dev"],
   },
 });
