@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
 
-const BACKEND_URL = "https://saint-leo-server.onrender.com";
+const BACKEND_URL = "http://localhost:3001";
 const POLL_INTERVAL = 4000;
 
 const C = {
@@ -133,12 +133,14 @@ function UserProfile({ emailData, rawEvents, surveys, onBack }) {
     { action: "Completed Survey (Dwell)",done: emailData.completedSurvey,   time: userEvents.find(e => e.stage === "survey_answered")?.timestamp,   color: C.purple, icon: "⏱️" },
   ];
 
+  // radar uses cumulative risk — each step adds to the previous
+  // so the shape fills progressively as the user goes deeper
   const radarData = [
-    { subject: "QR Scan",      value: 10  },
-    { subject: "Email",        value: emailData.emailSubmitted  ? 40  : 0 },
-    { subject: "File DL",      value: emailData.downloadedFile  ? 70  : 0 },
-    { subject: "Password",     value: emailData.passwordClicked ? 90  : 0 },
-    { subject: "Survey Dwell", value: emailData.completedSurvey ? 100 : 0 },
+    { subject: "QR Scan",      value: 10,                                    full: 10  },
+    { subject: "Email",        value: emailData.emailSubmitted  ? 40  : 10,  full: 40  },
+    { subject: "File DL",      value: emailData.downloadedFile  ? 70  : emailData.emailSubmitted ? 40 : 10,  full: 70  },
+    { subject: "Password",     value: emailData.passwordClicked ? 90  : emailData.downloadedFile ? 70 : emailData.emailSubmitted ? 40 : 10, full: 90 },
+    { subject: "Survey Dwell", value: emailData.completedSurvey ? 100 : emailData.passwordClicked ? 90 : emailData.downloadedFile ? 70 : emailData.emailSubmitted ? 40 : 10, full: 100 },
   ];
 
   return (
@@ -157,7 +159,7 @@ function UserProfile({ emailData, rawEvents, surveys, onBack }) {
         </div>
       </div>
 
-      <div style={{ padding: "24px 28px", maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ padding: "20px 2vw", width: "100%", boxSizing: "border-box" }}>
 
         {/* top cards */}
         <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 24 }}>
@@ -216,13 +218,24 @@ function UserProfile({ emailData, rawEvents, surveys, onBack }) {
           {/* radar chart */}
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px", flex: 1, minWidth: 220 }}>
             <div style={{ fontSize: 12, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Risk Radar</div>
-            <ResponsiveContainer width="100%" height={200}>
-              <RadarChart data={radarData}>
+            <ResponsiveContainer width="100%" height={220}>
+              <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
                 <PolarGrid stroke={C.border} />
                 <PolarAngleAxis dataKey="subject" tick={{ fill: C.muted, fontSize: 10, fontFamily: "monospace" }} />
-                <Radar dataKey="value" stroke={risk.color} fill={risk.color} fillOpacity={0.25} strokeWidth={2} />
+                {/* outer ring shows max possible */}
+                <Radar name="Max" dataKey="full" stroke={C.border} fill="transparent" strokeWidth={1} strokeDasharray="4 4" />
+                {/* actual risk filled area */}
+                <Radar name="Risk" dataKey="value" stroke={risk.color} fill={risk.color} fillOpacity={0.35} strokeWidth={2} dot={{ fill: risk.color, r: 4 }} />
               </RadarChart>
             </ResponsiveContainer>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: C.muted, fontFamily: "monospace" }}>
+                <span style={{ width: 20, height: 2, background: risk.color, display: "inline-block", borderRadius: 1 }} /> Actual Risk
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: C.muted, fontFamily: "monospace" }}>
+                <span style={{ width: 20, height: 2, background: C.border, display: "inline-block", borderRadius: 1, borderTop: `1px dashed ${C.border}` }} /> Max Possible
+              </div>
+            </div>
           </div>
         </div>
 
@@ -422,7 +435,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div style={{ padding: "12px 16px", maxWidth: 1400, margin: "0 auto" }}>
+      <div style={{ padding: "12px 2vw", width: "100%", boxSizing: "border-box" }}>
 
         {/* stat cards */}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
@@ -485,10 +498,10 @@ export default function Dashboard() {
 
         {/* OVERVIEW */}
         {tab === "overview" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 20px 10px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 14px 8px" }}>
               <div style={S.chartTitle}>Attack Funnel</div>
-              <ResponsiveContainer width="100%" height={240}>
+              <ResponsiveContainer width="100%" height="85%" minHeight={200}>
                 <BarChart data={funnelData} barSize={34}>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
                   <XAxis dataKey="name" tick={{ fill: C.muted, fontSize: 10, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
@@ -500,11 +513,11 @@ export default function Dashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 20px 10px" }}>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 14px 8px" }}>
               <div style={S.chartTitle}>Risk Distribution</div>
-              <ResponsiveContainer width="100%" height={240}>
+              <ResponsiveContainer width="100%" height="85%" minHeight={200}>
                 <PieChart>
-                  <Pie data={riskDist} cx="50%" cy="50%" innerRadius={55} outerRadius={88} paddingAngle={3} dataKey="value">
+                  <Pie data={riskDist} cx="50%" cy="50%" innerRadius="40%" outerRadius="65%" paddingAngle={3} dataKey="value">
                     {riskDist.map((e, i) => <Cell key={i} fill={e.fill} />)}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
@@ -669,15 +682,14 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* TIMELINE */}
         {tab === "timeline" && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 20px 10px" }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 14px 8px" }}>
             <div style={S.chartTitle}>Live Activity Timeline</div>
-            <p style={{ fontSize: 12, color: C.muted, fontFamily: "monospace", margin: "4px 0 16px" }}>Polling every {POLL_INTERVAL / 1000}s — last {history.length} snapshots</p>
+            <p style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", margin: "4px 0 12px" }}>Polling every {POLL_INTERVAL / 1000}s — last {history.length} snapshots</p>
             {history.length < 2 ? (
-              <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 13 }}>Collecting data points…</p>
+              <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 12 }}>Collecting data points…</p>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={280}>
                 <LineChart data={history} margin={{ left: 0, right: 16 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
                   <XAxis dataKey="t" tick={{ fill: C.muted, fontSize: 10, fontFamily: "monospace" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
@@ -690,9 +702,9 @@ export default function Dashboard() {
                 </LineChart>
               </ResponsiveContainer>
             )}
-            <div style={{ display: "flex", gap: 20, marginTop: 10 }}>
+            <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
               {[["Scans", C.green2], ["Emails", C.green3], ["Downloads", C.blue], ["Pwd Clicks", C.red]].map(([l, c]) => (
-                <div key={l} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: C.muted, fontFamily: "monospace" }}>
+                <div key={l} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: C.muted, fontFamily: "monospace" }}>
                   <span style={{ width: 16, height: 3, background: c, display: "inline-block", borderRadius: 2 }} />{l}
                 </div>
               ))}
