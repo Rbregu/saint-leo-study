@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
 
-const BACKEND_URL = "http://localhost:3001";
+const BACKEND_URL = "https://saint-leo-server.onrender.com";
+
+
 const POLL_INTERVAL = 4000;
 
 const C = {
