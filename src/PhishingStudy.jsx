@@ -51,7 +51,7 @@ Join our Cybersecurity Club at Saint Leo University!
 Stay safe. Stay aware. Stay curious.
 
 — Saint Leo University Cybersecurity Research Team
-  Spring 2026 · IRB Approved Study
+  Spring 2026
 =======================================================
 `;
 
