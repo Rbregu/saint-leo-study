@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const BACKEND_URL = "http://localhost:3001";
+const BACKEND_URL = "https://saint-leo-server.onrender.com";
 
 function trackEvent(stage, payload = {}) {
   fetch(`${BACKEND_URL}/track`, {
