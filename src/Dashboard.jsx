@@ -1,9 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
 
 const BACKEND_URL = "https://saint-leo-server.onrender.com";
-
-
 const POLL_INTERVAL = 4000;
 
 const C = {
@@ -323,7 +321,6 @@ function UserProfile({ emailData, rawEvents, surveys, onBack }) {
 // ── MAIN DASHBOARD ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [data, setData]             = useState(null);
-  const [history, setHistory]       = useState([]);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [tab, setTab]               = useState("overview");
   const [error, setError]           = useState(null);
@@ -337,16 +334,6 @@ export default function Dashboard() {
       setData(json);
       setError(null);
       setLastUpdate(new Date());
-      setHistory(prev => {
-        const point = {
-          t:         new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
-          scans:     json.summary.totalScans,
-          emails:    json.summary.emailsSubmitted,
-          pwds:      json.summary.passwordsAttempted,
-          downloads: json.summary.fileDownloads,
-        };
-        return [...prev.slice(-19), point];
-      });
     } catch {
       setError("Cannot reach server — make sure server.js is running on port 3001");
     }
@@ -485,7 +472,7 @@ export default function Dashboard() {
 
         {/* tabs */}
         <div style={{ display: "flex", gap: 2, marginBottom: 12, borderBottom: `1px solid ${C.border}` }}>
-          {["overview", "funnel", "roles", "survey", "emails", "timeline"].map(t => (
+          {["overview", "funnel", "roles", "survey", "emails"].map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
               padding: "6px 12px", border: "none", cursor: "pointer",
               background: tab === t ? C.green1 : "transparent",
@@ -681,36 +668,6 @@ export default function Dashboard() {
                 </tbody>
               </table>
             )}
-          </div>
-        )}
-
-        {tab === "timeline" && (
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 14px 8px" }}>
-            <div style={S.chartTitle}>Live Activity Timeline</div>
-            <p style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", margin: "4px 0 12px" }}>Polling every {POLL_INTERVAL / 1000}s — last {history.length} snapshots</p>
-            {history.length < 2 ? (
-              <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 12 }}>Collecting data points…</p>
-            ) : (
-              <ResponsiveContainer width="100%" height={280}>
-                <LineChart data={history} margin={{ left: 0, right: 16 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
-                  <XAxis dataKey="t" tick={{ fill: C.muted, fontSize: 10, fontFamily: "monospace" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fill: C.muted, fontSize: 10, fontFamily: "monospace" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line type="monotone" dataKey="scans"     name="Scans"      stroke={C.green2} strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="emails"    name="Emails"     stroke={C.green3} strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="downloads" name="Downloads"  stroke={C.blue}   strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="pwds"      name="Pwd Clicks" stroke={C.red}    strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-            <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
-              {[["Scans", C.green2], ["Emails", C.green3], ["Downloads", C.blue], ["Pwd Clicks", C.red]].map(([l, c]) => (
-                <div key={l} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: C.muted, fontFamily: "monospace" }}>
-                  <span style={{ width: 16, height: 3, background: c, display: "inline-block", borderRadius: 2 }} />{l}
-                </div>
-              ))}
-            </div>
           </div>
         )}
 
