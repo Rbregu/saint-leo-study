@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import logoImg from "./logo.jpg";
 const BACKEND_URL = "https://saint-leo-server.onrender.com";
 
 function trackEvent(stage, payload = {}) {
@@ -61,7 +61,7 @@ function SaintLeoLogo() {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
       <div style={styles.logoRing}>
         <img
-          src="https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Saint_Leo_University_seal.png/200px-Saint_Leo_University_seal.png"
+          src={logoImg}
           alt="Saint Leo University"
           style={{ width: 64, height: 64, objectFit: "contain" }}
           onError={(e) => { e.target.style.display = "none"; }}
