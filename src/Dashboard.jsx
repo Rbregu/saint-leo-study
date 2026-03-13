@@ -83,19 +83,19 @@ function LiveDot() {
 
 function StatCard({ label, value, sub, accent, icon, pct }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px 22px", borderTop: `3px solid ${accent || C.green1}`, display: "flex", flexDirection: "column", gap: 6, flex: 1, minWidth: 130 }}>
-      <div style={{ fontSize: 22 }}>{icon}</div>
-      <div style={{ fontSize: 34, fontWeight: 900, color: accent || C.green2, fontFamily: "'Georgia', serif", lineHeight: 1 }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", borderTop: `3px solid ${accent || C.green1}`, display: "flex", flexDirection: "column", gap: 3, flex: 1, minWidth: 100 }}>
+      <div style={{ fontSize: 16 }}>{icon}</div>
+      <div style={{ fontSize: 26, fontWeight: 900, color: accent || C.green2, fontFamily: "'Georgia', serif", lineHeight: 1 }}>
         <AnimNum value={value} />
       </div>
-      <div style={{ fontSize: 11, color: C.white, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "monospace" }}>{label}</div>
-      {sub && <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>{sub}</div>}
+      <div style={{ fontSize: 9, color: C.white, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "monospace" }}>{label}</div>
+      {sub && <div style={{ fontSize: 9, color: C.muted, fontFamily: "monospace" }}>{sub}</div>}
       {pct !== undefined && (
-        <div style={{ marginTop: 6 }}>
-          <div style={{ height: 4, borderRadius: 2, background: C.border, overflow: "hidden" }}>
+        <div style={{ marginTop: 4 }}>
+          <div style={{ height: 3, borderRadius: 2, background: C.border, overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${Math.min(pct, 100)}%`, background: `linear-gradient(90deg, ${accent || C.green1}, ${C.green2})`, borderRadius: 2, transition: "width 0.6s ease" }} />
           </div>
-          <div style={{ fontSize: 10, color: C.muted, marginTop: 3, fontFamily: "monospace" }}>{pct.toFixed(1)}% of scans</div>
+          <div style={{ fontSize: 9, color: C.muted, marginTop: 2, fontFamily: "monospace" }}>{pct.toFixed(1)}% of scans</div>
         </div>
       )}
     </div>
@@ -402,17 +402,17 @@ export default function Dashboard() {
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Georgia', serif" }}>
 
       {/* header */}
-      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "14px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8, background: `linear-gradient(135deg, ${C.green1}, ${C.green2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>🔐</div>
+      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: `linear-gradient(135deg, ${C.green1}, ${C.green2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔐</div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 16, color: C.white }}>Saint Leo — Security Awareness Study</div>
-            <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", marginTop: 1 }}>Real-Time Research Dashboard · Spring 2026</div>
+            <div style={{ fontWeight: 800, fontSize: 13, color: C.white }}>Saint Leo — Security Awareness Study</div>
+            <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 1 }}>Real-Time Research Dashboard · Spring 2026</div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <LiveDot />
-          {lastUpdate && <span style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>Updated {lastUpdate.toLocaleTimeString()}</span>}
+          {lastUpdate && <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>Updated {lastUpdate.toLocaleTimeString()}</span>}
         </div>
       </div>
 
@@ -422,46 +422,46 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div style={{ padding: "24px 28px", maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ padding: "12px 16px", maxWidth: 1400, margin: "0 auto" }}>
 
         {/* stat cards */}
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 20 }}>
-          <StatCard icon="📡" label="Total Scans"      value={s.totalScans}           accent={C.green2}  sub="QR code visits" />
-          <StatCard icon="📧" label="Emails Submitted" value={s.emailsSubmitted}      accent={C.green3}  sub="Entered email"      pct={emailPct} />
-          <StatCard icon="📥" label="File Downloads"   value={s.fileDownloads}        accent={C.blue}    sub="Potential malware"  pct={downloadPct} />
-          <StatCard icon="🔑" label="Password Clicks"  value={s.passwordsAttempted}   accent={C.red}     sub="Critical risk"      pct={riskPct} />
-          <StatCard icon="☠️" label="Max Risk (Survey)" value={s.surveyResponses}     accent={C.purple}  sub="Stayed = dwell time" pct={maxRiskPct} />
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+          <StatCard icon="📡" label="Total Scans"       value={s.totalScans}          accent={C.green2}  sub="QR code visits" />
+          <StatCard icon="📧" label="Emails Submitted"  value={s.emailsSubmitted}     accent={C.green3}  sub="Entered email"       pct={emailPct} />
+          <StatCard icon="📥" label="File Downloads"    value={s.fileDownloads}       accent={C.blue}    sub="Potential malware"   pct={downloadPct} />
+          <StatCard icon="🔑" label="Password Clicks"   value={s.passwordsAttempted}  accent={C.red}     sub="Critical risk"       pct={riskPct} />
+          <StatCard icon="☠️" label="Max Risk (Survey)" value={s.surveyResponses}     accent={C.purple}  sub="Dwell time"          pct={maxRiskPct} />
         </div>
 
         {/* conversion + role row */}
-        <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "16px 22px", flex: 1, minWidth: 260 }}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", flex: 1, minWidth: 220 }}>
             <div style={S.chartTitle}>Role Breakdown</div>
-            <div style={{ display: "flex", gap: 12, marginTop: 14 }}>
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
               {[
                 { label: "🎓 Students", value: s.students, color: C.green2 },
                 { label: "💼 Staff",    value: s.staff,    color: C.gold   },
                 { label: "❓ Unknown",  value: Math.max(0, s.emailsSubmitted - s.students - s.staff), color: C.muted },
               ].map(r => (
-                <div key={r.label} style={{ flex: 1, background: C.surface, borderRadius: 10, padding: "12px", textAlign: "center", border: `1px solid ${C.border}` }}>
-                  <div style={{ fontSize: 26, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.value}</div>
-                  <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 4 }}>{r.label}</div>
+                <div key={r.label} style={{ flex: 1, background: C.surface, borderRadius: 8, padding: "8px", textAlign: "center", border: `1px solid ${C.border}` }}>
+                  <div style={{ fontSize: 20, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.value}</div>
+                  <div style={{ fontSize: 9, color: C.muted, fontFamily: "monospace", marginTop: 3 }}>{r.label}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "16px 22px", flex: 2, minWidth: 300 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", flex: 2, minWidth: 280 }}>
             <div style={S.chartTitle}>Conversion Rates</div>
-            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginTop: 14 }}>
+            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 10 }}>
               {[
-                { label: "Scan → Email",      val: rates.scanToEmail,     color: C.green2 },
-                { label: "Scan → Download",   val: rates.scanToDownload,  color: C.blue   },
-                { label: "Email → Password",  val: rates.emailToPassword, color: C.red    },
+                { label: "Scan → Email",      val: rates.scanToEmail,     color: C.green2  },
+                { label: "Scan → Download",   val: rates.scanToDownload,  color: C.blue    },
+                { label: "Email → Password",  val: rates.emailToPassword, color: C.red     },
                 { label: "Overall Risk",      val: rates.overallRisk,     color: C.critical},
               ].map(r => (
-                <div key={r.label} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontSize: 22, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.val || "0%"}</span>
-                  <span style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>{r.label}</span>
+                <div key={r.label} style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
+                  <span style={{ fontSize: 18, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.val || "0%"}</span>
+                  <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>{r.label}</span>
                 </div>
               ))}
             </div>
@@ -469,14 +469,14 @@ export default function Dashboard() {
         </div>
 
         {/* tabs */}
-        <div style={{ display: "flex", gap: 4, marginBottom: 20, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ display: "flex", gap: 2, marginBottom: 12, borderBottom: `1px solid ${C.border}` }}>
           {["overview", "funnel", "roles", "survey", "emails", "timeline"].map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
-              padding: "8px 16px", border: "none", cursor: "pointer",
+              padding: "6px 12px", border: "none", cursor: "pointer",
               background: tab === t ? C.green1 : "transparent",
               color: tab === t ? C.white : C.muted,
-              borderRadius: "8px 8px 0 0",
-              fontSize: 11, fontWeight: 700, fontFamily: "monospace",
+              borderRadius: "6px 6px 0 0",
+              fontSize: 10, fontWeight: 700, fontFamily: "monospace",
               textTransform: "uppercase", letterSpacing: "0.06em",
               borderBottom: tab === t ? `2px solid ${C.green2}` : "2px solid transparent",
             }}>{t}</button>
@@ -700,9 +700,9 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div style={{ marginTop: 32, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-          <span style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>Saint Leo University · Cybersecurity Research · IRB Approved · Spring 2026</span>
-          <span style={{ fontSize: 11, color: C.border, fontFamily: "monospace" }}>Auto-refreshing every {POLL_INTERVAL / 1000}s</span>
+        <div style={{ marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+          <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>Saint Leo University · Cybersecurity Research · IRB Approved · Spring 2026</span>
+          <span style={{ fontSize: 10, color: C.border, fontFamily: "monospace" }}>Auto-refreshing every {POLL_INTERVAL / 1000}s</span>
         </div>
       </div>
     </div>
@@ -710,6 +710,6 @@ export default function Dashboard() {
 }
 
 const S = {
-  chartTitle: { fontSize: 13, fontWeight: 800, color: C.white, fontFamily: "monospace", letterSpacing: "0.06em", textTransform: "uppercase" },
-  td: { padding: "10px 16px", fontSize: 13, fontFamily: "monospace", color: C.text },
+  chartTitle: { fontSize: 11, fontWeight: 800, color: C.white, fontFamily: "monospace", letterSpacing: "0.06em", textTransform: "uppercase" },
+  td: { padding: "7px 12px", fontSize: 12, fontFamily: "monospace", color: C.text },
 };
