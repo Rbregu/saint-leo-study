@@ -83,19 +83,19 @@ function LiveDot() {
 
 function StatCard({ label, value, sub, accent, icon, pct }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", borderTop: `3px solid ${accent || C.green1}`, display: "flex", flexDirection: "column", gap: 3, flex: 1, minWidth: 100 }}>
-      <div style={{ fontSize: 16 }}>{icon}</div>
-      <div style={{ fontSize: 26, fontWeight: 900, color: accent || C.green2, fontFamily: "'Georgia', serif", lineHeight: 1 }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px 20px", borderTop: `3px solid ${accent || C.green1}`, display: "flex", flexDirection: "column", gap: 5 }}>
+      <div style={{ fontSize: 20 }}>{icon}</div>
+      <div style={{ fontSize: "2.4vw", fontWeight: 900, color: accent || C.green2, fontFamily: "'Georgia', serif", lineHeight: 1 }}>
         <AnimNum value={value} />
       </div>
-      <div style={{ fontSize: 9, color: C.white, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "monospace" }}>{label}</div>
-      {sub && <div style={{ fontSize: 9, color: C.muted, fontFamily: "monospace" }}>{sub}</div>}
+      <div style={{ fontSize: "0.7vw", color: C.white, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", fontFamily: "monospace" }}>{label}</div>
+      {sub && <div style={{ fontSize: "0.65vw", color: C.muted, fontFamily: "monospace" }}>{sub}</div>}
       {pct !== undefined && (
-        <div style={{ marginTop: 4 }}>
-          <div style={{ height: 3, borderRadius: 2, background: C.border, overflow: "hidden" }}>
+        <div style={{ marginTop: 6 }}>
+          <div style={{ height: 4, borderRadius: 2, background: C.border, overflow: "hidden" }}>
             <div style={{ height: "100%", width: `${Math.min(pct, 100)}%`, background: `linear-gradient(90deg, ${accent || C.green1}, ${C.green2})`, borderRadius: 2, transition: "width 0.6s ease" }} />
           </div>
-          <div style={{ fontSize: 9, color: C.muted, marginTop: 2, fontFamily: "monospace" }}>{pct.toFixed(1)}% of scans</div>
+          <div style={{ fontSize: "0.6vw", color: C.muted, marginTop: 3, fontFamily: "monospace" }}>{pct.toFixed(1)}% of scans</div>
         </div>
       )}
     </div>
@@ -401,33 +401,34 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Georgia', serif" }}>
+    <div style={{ height: "100vh", display: "flex", flexDirection: "column", background: C.bg, color: C.text, fontFamily: "'Georgia', serif", overflow: "hidden" }}>
 
       {/* header */}
-      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "10px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: `linear-gradient(135deg, ${C.green1}, ${C.green2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14 }}>🔐</div>
+      <div style={{ background: C.surface, borderBottom: `1px solid ${C.border}`, padding: "12px 2vw", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: `linear-gradient(135deg, ${C.green1}, ${C.green2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🔐</div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 13, color: C.white }}>Saint Leo — Security Awareness Study</div>
-            <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 1 }}>Real-Time Research Dashboard · Spring 2026</div>
+            <div style={{ fontWeight: 800, fontSize: 15, color: C.white }}>Saint Leo — Security Awareness Study</div>
+            <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", marginTop: 1 }}>Real-Time Research Dashboard · Spring 2026</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           <LiveDot />
-          {lastUpdate && <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>Updated {lastUpdate.toLocaleTimeString()}</span>}
+          {lastUpdate && <span style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>Updated {lastUpdate.toLocaleTimeString()}</span>}
         </div>
       </div>
 
       {error && (
-        <div style={{ background: "#3a0f0f", border: "1px solid #7a2222", padding: "10px 28px", fontSize: 13, color: "#f5a0a0", fontFamily: "monospace" }}>
+        <div style={{ background: "#3a0f0f", border: "1px solid #7a2222", padding: "8px 2vw", fontSize: 12, color: "#f5a0a0", fontFamily: "monospace", flexShrink: 0 }}>
           ⚠️ {error}
         </div>
       )}
 
-      <div style={{ padding: "12px 2vw", width: "100%", boxSizing: "border-box" }}>
+      {/* scrollable body */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 2vw", boxSizing: "border-box" }}>
 
         {/* stat cards */}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "1vw", marginBottom: "1.2vh" }}>
           <StatCard icon="📡" label="Total Scans"       value={s.totalScans}          accent={C.green2}  sub="QR code visits" />
           <StatCard icon="📧" label="Emails Submitted"  value={s.emailsSubmitted}     accent={C.green3}  sub="Entered email"       pct={emailPct} />
           <StatCard icon="📥" label="File Downloads"    value={s.fileDownloads}       accent={C.blue}    sub="Potential malware"   pct={downloadPct} />
@@ -436,34 +437,34 @@ export default function Dashboard() {
         </div>
 
         {/* conversion + role row */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", flex: 1, minWidth: 220 }}>
+        <div style={{ display: "flex", gap: "1vw", marginBottom: "1.2vh", flexWrap: "wrap" }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px 20px", flex: 1, minWidth: 260 }}>
             <div style={S.chartTitle}>Role Breakdown</div>
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+            <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
               {[
                 { label: "🎓 Students", value: s.students, color: C.green2 },
                 { label: "💼 Staff",    value: s.staff,    color: C.gold   },
                 { label: "❓ Unknown",  value: Math.max(0, s.emailsSubmitted - s.students - s.staff), color: C.muted },
               ].map(r => (
-                <div key={r.label} style={{ flex: 1, background: C.surface, borderRadius: 8, padding: "8px", textAlign: "center", border: `1px solid ${C.border}` }}>
-                  <div style={{ fontSize: 20, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.value}</div>
-                  <div style={{ fontSize: 9, color: C.muted, fontFamily: "monospace", marginTop: 3 }}>{r.label}</div>
+                <div key={r.label} style={{ flex: 1, background: C.surface, borderRadius: 10, padding: "12px", textAlign: "center", border: `1px solid ${C.border}` }}>
+                  <div style={{ fontSize: 28, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.value}</div>
+                  <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", marginTop: 4 }}>{r.label}</div>
                 </div>
               ))}
             </div>
           </div>
-          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 14px", flex: 2, minWidth: 280 }}>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px 20px", flex: 2, minWidth: 340 }}>
             <div style={S.chartTitle}>Conversion Rates</div>
-            <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 10 }}>
+            <div style={{ display: "flex", gap: "2vw", flexWrap: "wrap", marginTop: 12 }}>
               {[
                 { label: "Scan → Email",      val: rates.scanToEmail,     color: C.green2  },
                 { label: "Scan → Download",   val: rates.scanToDownload,  color: C.blue    },
                 { label: "Email → Password",  val: rates.emailToPassword, color: C.red     },
                 { label: "Overall Risk",      val: rates.overallRisk,     color: C.critical},
               ].map(r => (
-                <div key={r.label} style={{ display: "flex", alignItems: "baseline", gap: 5 }}>
-                  <span style={{ fontSize: 18, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.val || "0%"}</span>
-                  <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>{r.label}</span>
+                <div key={r.label} style={{ display: "flex", alignItems: "baseline", gap: 7 }}>
+                  <span style={{ fontSize: 26, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.val || "0%"}</span>
+                  <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace" }}>{r.label}</span>
                 </div>
               ))}
             </div>
@@ -471,14 +472,14 @@ export default function Dashboard() {
         </div>
 
         {/* tabs */}
-        <div style={{ display: "flex", gap: 2, marginBottom: 12, borderBottom: `1px solid ${C.border}` }}>
+        <div style={{ display: "flex", gap: 4, marginBottom: "1vh", borderBottom: `1px solid ${C.border}` }}>
           {["overview", "funnel", "roles", "survey", "emails"].map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
-              padding: "6px 12px", border: "none", cursor: "pointer",
+              padding: "8px 20px", border: "none", cursor: "pointer",
               background: tab === t ? C.green1 : "transparent",
               color: tab === t ? C.white : C.muted,
-              borderRadius: "6px 6px 0 0",
-              fontSize: 10, fontWeight: 700, fontFamily: "monospace",
+              borderRadius: "8px 8px 0 0",
+              fontSize: 12, fontWeight: 700, fontFamily: "monospace",
               textTransform: "uppercase", letterSpacing: "0.06em",
               borderBottom: tab === t ? `2px solid ${C.green2}` : "2px solid transparent",
             }}>{t}</button>
@@ -487,35 +488,39 @@ export default function Dashboard() {
 
         {/* OVERVIEW */}
         {tab === "overview" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 14px 8px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1vw", height: "42vh" }}>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px", display: "flex", flexDirection: "column" }}>
               <div style={S.chartTitle}>Attack Funnel</div>
-              <ResponsiveContainer width="100%" height="85%" minHeight={200}>
-                <BarChart data={funnelData} barSize={34}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
-                  <XAxis dataKey="name" tick={{ fill: C.muted, fontSize: 10, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: C.muted, fontSize: 10, fontFamily: "monospace" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                    {funnelData.map((e, i) => <Cell key={i} fill={e.fill} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <div style={{ flex: 1, minHeight: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={funnelData} barSize={42} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                    <XAxis dataKey="name" tick={{ fill: C.muted, fontSize: 11, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: C.muted, fontSize: 11, fontFamily: "monospace" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                      {funnelData.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 14px 8px" }}>
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px", display: "flex", flexDirection: "column" }}>
               <div style={S.chartTitle}>Risk Distribution</div>
-              <ResponsiveContainer width="100%" height="85%" minHeight={200}>
-                <PieChart>
-                  <Pie data={riskDist} cx="50%" cy="50%" innerRadius="40%" outerRadius="65%" paddingAngle={3} dataKey="value">
-                    {riskDist.map((e, i) => <Cell key={i} fill={e.fill} />)}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
+              <div style={{ flex: 1, minHeight: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={riskDist} cx="50%" cy="50%" innerRadius="35%" outerRadius="60%" paddingAngle={3} dataKey="value">
+                      {riskDist.map((e, i) => <Cell key={i} fill={e.fill} />)}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{ display: "flex", justifyContent: "center", gap: 14, flexWrap: "wrap", paddingTop: 8 }}>
                 {riskDist.map(r => (
-                  <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: C.muted, fontFamily: "monospace" }}>
-                    <span style={{ width: 10, height: 10, borderRadius: 2, background: r.fill, display: "inline-block" }} />{r.name.split(" ")[0]}
+                  <div key={r.name} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: C.muted, fontFamily: "monospace" }}>
+                    <span style={{ width: 10, height: 10, borderRadius: 2, background: r.fill, display: "inline-block" }} />{r.name}
                   </div>
                 ))}
               </div>
@@ -671,9 +676,9 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div style={{ marginTop: 16, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-          <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>Saint Leo University · Cybersecurity Research · IRB Approved · Spring 2026</span>
-          <span style={{ fontSize: 10, color: C.border, fontFamily: "monospace" }}>Auto-refreshing every {POLL_INTERVAL / 1000}s</span>
+        <div style={{ marginTop: "1.5vh", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 11, color: C.muted, fontFamily: "monospace" }}>Saint Leo University · Cybersecurity Research · IRB Approved · Spring 2026</span>
+          <span style={{ fontSize: 11, color: C.border, fontFamily: "monospace" }}>Auto-refreshing every {POLL_INTERVAL / 1000}s</span>
         </div>
       </div>
     </div>
@@ -681,6 +686,6 @@ export default function Dashboard() {
 }
 
 const S = {
-  chartTitle: { fontSize: 11, fontWeight: 800, color: C.white, fontFamily: "monospace", letterSpacing: "0.06em", textTransform: "uppercase" },
-  td: { padding: "7px 12px", fontSize: 12, fontFamily: "monospace", color: C.text },
+  chartTitle: { fontSize: 12, fontWeight: 800, color: C.white, fontFamily: "monospace", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 4 },
+  td: { padding: "9px 14px", fontSize: 13, fontFamily: "monospace", color: C.text },
 };
