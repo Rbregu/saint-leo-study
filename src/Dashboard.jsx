@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, CartesianGrid, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
 
-const BACKEND_URL = "https://saint-leo-server.onrender.com";
+const BACKEND_URL = "http://localhost:3001";
 const POLL_INTERVAL = 4000;
 
 const C = {
@@ -351,12 +351,12 @@ export default function Dashboard() {
   const surveys    = data?.surveys      || [];
   const rawEvents  = data?.rawEvents    || [];
 
-  // enrich emails with all risk flags
+  // enrich emails — server now sends passwordClicked and downloadedFile correctly
   const emails = rawEmails.map(e => ({
     ...e,
     emailSubmitted:  true,
-    downloadedFile:  e.downloadedFile || false,
-    passwordClicked: rawEvents.some(ev => ev.stage === "password_clicked" && ev.email === e.email),
+    downloadedFile:  e.downloadedFile  || false,
+    passwordClicked: e.passwordClicked || rawEvents.some(ev => ev.stage === "password_clicked" && ev.email && ev.email === e.email),
     completedSurvey: surveys.some(sv => sv.email === e.email),
   }));
 
