@@ -63,7 +63,7 @@ function SaintLeoLogo() {
         <img
           src={logoImg}
           alt="Saint Leo University"
-          style={{ width: 64, height: 64, objectFit: "contain" }}
+          style={{ width: 75, height: 75, objectFit: "contain" }}
           onError={(e) => { e.target.style.display = "none"; }}
         />
       </div>
