@@ -387,7 +387,7 @@ function DebriefStage() {
         ))}
       </div>
       <p style={{ ...styles.fine, marginTop: 20 }}>
-        Questions? Contact the research team at <strong>edward.santiago@saintleo.edu | gina.brierley@saintleo.edu | ramadan.bregu@saintleo.edu</strong>
+        Questions? Contact the research team: <strong>edward.santiago@saintleo.edu | gina.brierley@saintleo.edu | ramadan.bregu@saintleo.edu</strong>
         &nbsp;·&nbsp; Study approved by Saint Leo University.
       </p>
     </div>
