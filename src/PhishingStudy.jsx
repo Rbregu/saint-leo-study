@@ -18,7 +18,7 @@ function trackEvent(stage, payload = {}) {
 // ── File content for the "malware" download ───────────────────────────────────
 const FILE_CONTENT = `
 =======================================================
-  ⚠️  YOU DOWNLOADED A FILE FROM AN UNKNOWN SOURCE
+    YOU DOWNLOADED A FILE FROM AN UNKNOWN SOURCE
 =======================================================
 
 This file could have been MALWARE.
@@ -33,20 +33,20 @@ In a real phishing attack, this file could have:
   - Encrypted your files and demanded a ransom
 
 -------------------------------------------------------
-  👋 BUT DON'T WORRY — YOU'RE INVITED!
+     BUT DON'T WORRY — YOU'RE INVITED!
 -------------------------------------------------------
 
 You are cordially invited to learn more about:
 
-  ✅ Cybersecurity Awareness Training
-  ✅ Ethical Hacking & Penetration Testing
-  ✅ How to protect yourself online
+      Cybersecurity Awareness Training
+      Ethical Hacking & Penetration Testing
+      How to protect yourself online
 
 Join our Cybersecurity Club at Saint Leo University!
 
-  📧 Contact: cybersecurity@saintleo.edu
-  📍 Location: Kirk Hall, Room 101
-  📅 Meetings: Every Thursday at 6:00 PM
+  Contact: edward.saintiago@saintleo.edu
+  Location: Donald R. Tapia , Room 409
+  Meetings: Every Tuesday - Thursday 5:30 - 7:00 PM
 
 Stay safe. Stay aware. Stay curious.
 
@@ -387,8 +387,8 @@ function DebriefStage() {
         ))}
       </div>
       <p style={{ ...styles.fine, marginTop: 20 }}>
-        Questions? Contact the research team at <strong>cybersecurity@saintleo.edu</strong>
-        &nbsp;·&nbsp; Study approved by the Saint Leo IRB.
+        Questions? Contact the research team at <strong>edward.santiago@saintleo.edu | gina.brierley@saintleo.edu | ramadan.bregu@saintleo.edu</strong>
+        &nbsp;·&nbsp; Study approved by Saint Leo University.
       </p>
     </div>
   );
