@@ -301,9 +301,10 @@ function UserProfile({ emailData, rawEvents, surveys, onBack }) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {[
-                ["Why did you trust this page?",    userSurvey.q1],
-                ["Did you notice any red flags?",   userSurvey.q2],
-                ["How often do you scan QR codes?", userSurvey.q3],
+                ["Age Group",                          userSurvey.q1],
+                ["Why did you trust this page?",       userSurvey.q2],
+                ["Did you notice any red flags?",      userSurvey.q3],
+                ["How often do you scan QR codes?",    userSurvey.q4],
               ].map(([q, a]) => (
                 <div key={q} style={{ background: C.surface, borderRadius: 8, padding: "12px 16px", border: `1px solid ${C.border}` }}>
                   <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", marginBottom: 4 }}>{q}</div>
@@ -345,7 +346,7 @@ export default function Dashboard() {
     return () => clearInterval(id);
   }, []);
 
-  const s       = data?.summary         || { totalScans: 0, emailsSubmitted: 0, passwordsAttempted: 0, surveyResponses: 0, fileDownloads: 0, students: 0, staff: 0 };
+  const s       = data?.summary         || { totalScans: 0, emailsSubmitted: 0, passwordsAttempted: 0, surveyResponses: 0, fileDownloads: 0, students: 0, staff: 0, faculty: 0 };
   const rates   = data?.conversionRates || {};
   const rawEmails  = data?.emails       || [];
   const surveys    = data?.surveys      || [];
@@ -376,13 +377,15 @@ export default function Dashboard() {
   const roleData = [
     { name: "Students", value: s.students, fill: C.green2 },
     { name: "Staff",    value: s.staff,    fill: C.gold   },
+    { name: "Faculty",  value: s.faculty,  fill: C.blue   },
   ];
 
-  const q1Tally = {}, q2Tally = {}, q3Tally = {};
+  const q1Tally = {}, q2Tally = {}, q3Tally = {}, q4Tally = {};
   surveys.forEach(sv => {
     if (sv.q1) q1Tally[sv.q1] = (q1Tally[sv.q1] || 0) + 1;
     if (sv.q2) q2Tally[sv.q2] = (q2Tally[sv.q2] || 0) + 1;
     if (sv.q3) q3Tally[sv.q3] = (q3Tally[sv.q3] || 0) + 1;
+    if (sv.q4) q4Tally[sv.q4] = (q4Tally[sv.q4] || 0) + 1;
   });
   const toChart = (t) => Object.entries(t).map(([name, value]) => ({ name, value }));
   const PIE_COLORS = [C.green2, C.green1, C.gold, C.muted, "#74b49b"];
@@ -444,7 +447,8 @@ export default function Dashboard() {
               {[
                 { label: "🎓 Students", value: s.students, color: C.green2 },
                 { label: "💼 Staff",    value: s.staff,    color: C.gold   },
-                { label: "❓ Unknown",  value: Math.max(0, s.emailsSubmitted - s.students - s.staff), color: C.muted },
+                { label: "👨‍🏫 Faculty", value: s.faculty,  color: C.blue   },
+                { label: "❓ Unknown",  value: Math.max(0, s.emailsSubmitted - s.students - s.staff - s.faculty), color: C.muted },
               ].map(r => (
                 <div key={r.label} style={{ flex: 1, background: C.surface, borderRadius: 10, padding: "12px", textAlign: "center", border: `1px solid ${C.border}` }}>
                   <div style={{ fontSize: 28, fontWeight: 900, color: r.color, fontFamily: "monospace" }}>{r.value}</div>
@@ -573,12 +577,13 @@ export default function Dashboard() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "24px" }}>
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "24px" }}>
               <div style={S.chartTitle}>Role Risk Analysis</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 16 }}>
                 {[
                   { label: "🎓 Students",          value: s.students,            color: C.green2  },
                   { label: "💼 Staff",              value: s.staff,               color: C.gold    },
+                  { label: "👨‍🏫 Faculty",           value: s.faculty,             color: C.blue    },
                   { label: "📥 File Downloads",     value: s.fileDownloads,       color: C.blue    },
                   { label: "🔑 Password Attempts",  value: s.passwordsAttempted,  color: C.red     },
                   { label: "☠️ Max Risk (Survey)",  value: s.surveyResponses,     color: C.purple  },
@@ -597,9 +602,10 @@ export default function Dashboard() {
         {tab === "survey" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {[
-              { title: "Why did you trust this page?",    data: toChart(q1Tally) },
-              { title: "Did you notice any red flags?",   data: toChart(q2Tally) },
-              { title: "How often do you scan QR codes?", data: toChart(q3Tally) },
+              { title: "Age Group",                          data: toChart(q1Tally) },
+              { title: "Why did you trust this page?",       data: toChart(q2Tally) },
+              { title: "Did you notice any red flags?",      data: toChart(q3Tally) },
+              { title: "How often do you scan QR codes?",    data: toChart(q4Tally) },
             ].map((q, qi) => (
               <div key={qi} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px" }}>
                 <div style={S.chartTitle}>{q.title}</div>
