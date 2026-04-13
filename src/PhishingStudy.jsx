@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import logoImg from "./logo.jpg";
+
 const BACKEND_URL = "https://saint-leo-server.onrender.com";
 
 function trackEvent(stage, payload = {}) {
@@ -94,8 +95,8 @@ function LandingStage({ onNext }) {
   }
 
   function handleSubmit() {
-    if (!email.includes("@") || !email.includes(".")) {
-      setError("Please enter a valid Saint Leo email address.");
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
       return;
     }
     if (!roles.student && !roles.staff && !roles.faculty) {
