@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import logoImg from "./logo.jpg";
+
 const BACKEND_URL = "https://saint-leo-server.onrender.com";
 
 function trackEvent(stage, payload = {}) {
@@ -18,7 +18,7 @@ function trackEvent(stage, payload = {}) {
 // ── File content for the "malware" download ───────────────────────────────────
 const FILE_CONTENT = `
 =======================================================
-    YOU DOWNLOADED A FILE FROM AN UNKNOWN SOURCE
+  ⚠️  YOU DOWNLOADED A FILE FROM AN UNKNOWN SOURCE
 =======================================================
 
 This file could have been MALWARE.
@@ -33,25 +33,25 @@ In a real phishing attack, this file could have:
   - Encrypted your files and demanded a ransom
 
 -------------------------------------------------------
-     BUT DON'T WORRY — YOU'RE INVITED!
+  👋 BUT DON'T WORRY — YOU'RE INVITED!
 -------------------------------------------------------
 
 You are cordially invited to learn more about:
 
-      Cybersecurity Awareness Training
-      Ethical Hacking & Penetration Testing
-      How to protect yourself online
+  ✅ Cybersecurity Awareness Training
+  ✅ Ethical Hacking & Penetration Testing
+  ✅ How to protect yourself online
 
 Join our Cybersecurity Club at Saint Leo University!
 
-  Contact: edward.saintiago@saintleo.edu
-  Location: Donald R. Tapia , Room 409
-  Meetings: Every Tuesday - Thursday 5:30 - 7:00 PM
+  📧 Contact: cybersecurity@saintleo.edu
+  📍 Location: Kirk Hall, Room 101
+  📅 Meetings: Every Thursday at 6:00 PM
 
 Stay safe. Stay aware. Stay curious.
 
 — Saint Leo University Cybersecurity Research Team
-  Spring 2026
+  Spring 2026 · IRB Approved Study
 =======================================================
 `;
 
@@ -61,9 +61,9 @@ function SaintLeoLogo() {
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
       <div style={styles.logoRing}>
         <img
-          src={logoImg}
+          src="https://upload.wikimedia.org/wikipedia/en/thumb/2/2b/Saint_Leo_University_seal.png/200px-Saint_Leo_University_seal.png"
           alt="Saint Leo University"
-          style={{ width: 75, height: 75, objectFit: "contain" }}
+          style={{ width: 64, height: 64, objectFit: "contain" }}
           onError={(e) => { e.target.style.display = "none"; }}
         />
       </div>
@@ -75,7 +75,7 @@ function SaintLeoLogo() {
 // ── STAGE 1 — Landing ─────────────────────────────────────────────────────────
 function LandingStage({ onNext }) {
   const [email, setEmail]   = useState("");
-  const [roles, setRoles]   = useState({ student: false, staff: false });
+  const [roles, setRoles]   = useState({ student: false, staff: false, faculty: false });
   const [error, setError]   = useState("");
 
   function toggleRole(role) {
@@ -98,8 +98,8 @@ function LandingStage({ onNext }) {
       setError("Please enter a valid Saint Leo email address.");
       return;
     }
-    if (!roles.student && !roles.staff) {
-      setError("Please select if you are a Student and/or Staff.");
+    if (!roles.student && !roles.staff && !roles.faculty) {
+      setError("Please select your campus status.");
       return;
     }
     setError("");
@@ -122,7 +122,7 @@ function LandingStage({ onNext }) {
       <div style={{ width: "100%", marginTop: 20 }}>
         <label style={styles.label}>I am a (select all that apply)</label>
         <div style={{ display: "flex", gap: 16, marginTop: 6 }}>
-          {[["student", "🎓 Student"], ["staff", "💼 Staff"]].map(([key, label]) => (
+          {[["student", "🎓 Student"], ["staff", "💼 Staff"], ["faculty", "👨‍🏫 Faculty"]].map(([key, label]) => (
             <button key={key} onClick={() => toggleRole(key)} style={{
               flex: 1, padding: "10px 14px",
               border: `1.5px solid ${roles[key] ? "#2d6a4f" : "#b7d4c3"}`,
@@ -202,6 +202,16 @@ function LandingStage({ onNext }) {
 const QUESTIONS = [
   {
     id: "q1",
+    text: "What is your age group?",
+    options: [
+      "Under 18",
+      "19–25",
+      "26–35",
+      "36+",
+    ],
+  },
+  {
+    id: "q2",
     text: "Why did you trust this page?",
     options: [
       "It had the Saint Leo logo",
@@ -211,7 +221,7 @@ const QUESTIONS = [
     ],
   },
   {
-    id: "q2",
+    id: "q3",
     text: "Did you notice any red flags?",
     options: [
       "No, everything looked legitimate",
@@ -221,7 +231,7 @@ const QUESTIONS = [
     ],
   },
   {
-    id: "q3",
+    id: "q4",
     text: "How often do you scan QR codes?",
     options: [
       "Very often — multiple times a week",
@@ -296,7 +306,7 @@ function PasswordStage({ email, roles, onTriggered }) {
       ) : (
         <>
           <div style={styles.prizeTag}>📋 Before You Continue</div>
-          <h1 style={{ ...styles.heading, fontSize: 21 }}>Answer 3 Quick Questions</h1>
+          <h1 style={{ ...styles.heading, fontSize: 21 }}>Answer 4 Quick Questions</h1>
           <p style={{ ...styles.sub, marginBottom: 4 }}>Your answers help us improve the campus experience.</p>
           <div style={{ width: "100%", marginTop: 18, display: "flex", flexDirection: "column", gap: 22 }}>
             {QUESTIONS.map((q, qi) => (
@@ -338,7 +348,7 @@ function PasswordStage({ email, roles, onTriggered }) {
             onMouseLeave={e => { if (allAnswered) e.target.style.background = "#2d6a4f"; }}>
             Submit &amp; Continue →
           </button>
-          {!allAnswered && <p style={{ ...styles.fine, color: "#9ab5a6", marginTop: 8 }}>Please answer all 3 questions to continue.</p>}
+          {!allAnswered && <p style={{ ...styles.fine, color: "#9ab5a6", marginTop: 8 }}>Please answer all 4 questions to continue.</p>}
         </>
       )}
     </div>
@@ -387,8 +397,8 @@ function DebriefStage() {
         ))}
       </div>
       <p style={{ ...styles.fine, marginTop: 20 }}>
-        Questions? Contact the research team: <strong>edward.santiago@saintleo.edu | gina.brierley@saintleo.edu | ramadan.bregu@saintleo.edu</strong>
-        &nbsp;·&nbsp; Study approved by Saint Leo University.
+        Questions? Contact the research team at <strong>cybersecurity@saintleo.edu</strong>
+        &nbsp;·&nbsp; Study approved by the Saint Leo IRB.
       </p>
     </div>
   );
@@ -398,7 +408,7 @@ function DebriefStage() {
 export default function App() {
   const [stage, setStage] = useState("landing");
   const [email, setEmail] = useState("");
-  const [roles, setRoles] = useState({ student: false, staff: false });
+  const [roles, setRoles] = useState({ student: false, staff: false, faculty: false });
 
   useEffect(() => { trackEvent("page_loaded"); }, []);
 
