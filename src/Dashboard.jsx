@@ -154,7 +154,12 @@ function UserProfile({ emailData, rawEvents, surveys, onBack }) {
           <div style={{ fontWeight: 800, fontSize: 15, color: C.white }}>User Profile — {userEmail}</div>
           <div style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", marginTop: 1 }}>Individual Risk Analysis · Saint Leo Security Study</div>
         </div>
-        <div style={{ marginLeft: "auto" }}>
+        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 12 }}>
+          {emailData.ageGroup && emailData.ageGroup !== "Unknown" && (
+            <span style={{ background: C.gold + "22", color: C.gold, border: `1px solid ${C.gold}66`, borderRadius: 6, padding: "3px 10px", fontSize: 11, fontFamily: "monospace", fontWeight: 700 }}>
+              🎂 {emailData.ageGroup}
+            </span>
+          )}
           <RiskBadge risk={risk} showScore={true} />
         </div>
       </div>
@@ -182,6 +187,12 @@ function UserProfile({ emailData, rawEvents, surveys, onBack }) {
           <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "24px", flex: 1, minWidth: 200 }}>
             <div style={{ fontSize: 12, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>User Info</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace" }}>Age Group</span>
+                <span style={{ fontSize: 12, color: C.gold, fontFamily: "monospace", fontWeight: 700 }}>
+                  {emailData.ageGroup && emailData.ageGroup !== "Unknown" ? emailData.ageGroup : "—"}
+                </span>
+              </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 12, color: C.muted, fontFamily: "monospace" }}>Email</span>
                 <span style={{ fontSize: 12, color: C.green3, fontFamily: "monospace", fontWeight: 700 }}>{userEmail}</span>
@@ -359,6 +370,7 @@ export default function Dashboard() {
     downloadedFile:  e.downloadedFile  || false,
     passwordClicked: e.passwordClicked || rawEvents.some(ev => ev.stage === "password_clicked" && ev.email && ev.email === e.email),
     completedSurvey: surveys.some(sv => sv.email === e.email),
+    ageGroup: surveys.find(sv => sv.email === e.email)?.q1 || "Unknown",
   }));
 
   const emailPct    = s.totalScans ? (s.emailsSubmitted    / s.totalScans) * 100 : 0;
@@ -397,6 +409,30 @@ export default function Dashboard() {
     { name: "High (Download)",    value: emails.filter(e => calcRisk(e).label === "HIGH").length,     fill: C.red     },
     { name: "Medium (Email)",     value: emails.filter(e => calcRisk(e).label === "MEDIUM").length,   fill: C.gold    },
   ];
+
+  // ── Correlation: Age Group vs Avg Risk Score ──────────────────────────────
+  const AGE_ORDER = ["Under 18", "19–25", "26–35", "36+", "Unknown"];
+  const ageGroups = {};
+  emails.forEach(e => {
+    const age = e.ageGroup || "Unknown";
+    if (!ageGroups[age]) ageGroups[age] = { total: 0, count: 0, scans: 0, maxRisk: 0, critical: 0, high: 0 };
+    const score = calcRisk(e).score;
+    ageGroups[age].total += score;
+    ageGroups[age].count += 1;
+    if (e.completedSurvey)  ageGroups[age].maxRisk++;
+    if (e.passwordClicked)  ageGroups[age].critical++;
+    if (e.downloadedFile)   ageGroups[age].high++;
+  });
+  const correlationData = AGE_ORDER
+    .filter(a => ageGroups[a]?.count > 0)
+    .map(a => ({
+      age:     a,
+      avgRisk: Math.round(ageGroups[a].total / ageGroups[a].count),
+      count:   ageGroups[a].count,
+      maxRisk: ageGroups[a].maxRisk,
+      critical:ageGroups[a].critical,
+      high:    ageGroups[a].high,
+    }));
 
   // show user profile if selected
   if (selectedUser) {
@@ -477,7 +513,7 @@ export default function Dashboard() {
 
         {/* tabs */}
         <div style={{ display: "flex", gap: 4, marginBottom: "1vh", borderBottom: `1px solid ${C.border}` }}>
-          {["overview", "funnel", "roles", "survey", "emails"].map(t => (
+          {["overview", "funnel", "roles", "survey", "emails", "correlation"].map(t => (
             <button key={t} onClick={() => setTab(t)} style={{
               padding: "8px 20px", border: "none", cursor: "pointer",
               background: tab === t ? C.green1 : "transparent",
@@ -641,7 +677,7 @@ export default function Dashboard() {
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
                   <tr style={{ background: C.surface }}>
-                    {["#", "Email", "Role", "Risk", "Score", "Downloaded", "Timestamp"].map(h => (
+                    {["#", "Email", "Role", "Age Group", "Risk", "Score", "Downloaded", "Timestamp"].map(h => (
                       <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.08em" }}>{h}</th>
                     ))}
                   </tr>
@@ -662,8 +698,19 @@ export default function Dashboard() {
                         </td>
                         <td style={S.td}>
                           {e.roles?.student && <span style={{ background: C.green1, color: "#fff", borderRadius: 4, padding: "2px 7px", fontSize: 10, fontFamily: "monospace", marginRight: 4 }}>Student</span>}
-                          {e.roles?.staff   && <span style={{ background: C.gold,   color: "#000", borderRadius: 4, padding: "2px 7px", fontSize: 10, fontFamily: "monospace" }}>Staff</span>}
-                          {!e.roles?.student && !e.roles?.staff && <span style={{ color: C.muted, fontSize: 11 }}>—</span>}
+                          {e.roles?.staff   && <span style={{ background: C.gold,   color: "#000", borderRadius: 4, padding: "2px 7px", fontSize: 10, fontFamily: "monospace", marginRight: 4 }}>Staff</span>}
+                          {e.roles?.faculty && <span style={{ background: C.blue,   color: "#fff", borderRadius: 4, padding: "2px 7px", fontSize: 10, fontFamily: "monospace" }}>Faculty</span>}
+                          {!e.roles?.student && !e.roles?.staff && !e.roles?.faculty && <span style={{ color: C.muted, fontSize: 11 }}>—</span>}
+                        </td>
+                        <td style={S.td}>
+                          <span style={{
+                            background: e.ageGroup === "Unknown" ? C.border : C.green1 + "44",
+                            color: e.ageGroup === "Unknown" ? C.muted : C.green3,
+                            border: `1px solid ${e.ageGroup === "Unknown" ? C.border : C.green1}`,
+                            borderRadius: 4, padding: "2px 8px", fontSize: 10, fontFamily: "monospace"
+                          }}>
+                            {e.ageGroup}
+                          </span>
                         </td>
                         <td style={S.td}><RiskBadge risk={risk} showScore={false} /></td>
                         <td style={{ ...S.td, color: risk.color, fontWeight: 900, fontFamily: "monospace" }}>{risk.score}</td>
@@ -678,6 +725,107 @@ export default function Dashboard() {
                   })}
                 </tbody>
               </table>
+            )}
+          </div>
+        )}
+
+        {/* CORRELATION — Age vs Risk */}
+        {tab === "correlation" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+            {/* header note */}
+            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 20px" }}>
+              <div style={S.chartTitle}>H1: Age Group vs QR Code Engagement Risk</div>
+              <p style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", marginTop: 6, lineHeight: 1.6 }}>
+                Testing whether younger individuals engage more deeply with QR-based phishing simulations than older individuals.
+                Risk score is derived from deepest engagement stage (Survey=100, Password=90, Download=70, Email=40).
+                Chi-Square Test of Independence will be applied once data collection is complete.
+              </p>
+            </div>
+
+            {correlationData.length === 0 ? (
+              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 24 }}>
+                <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 13 }}>No survey age data yet — participants must complete the survey for age correlation data to appear.</p>
+              </div>
+            ) : (
+              <>
+                {/* Bar chart: Avg Risk by Age */}
+                <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "16px", height: "32vh", display: "flex", flexDirection: "column" }}>
+                  <div style={S.chartTitle}>Average Risk Score by Age Group</div>
+                  <div style={{ flex: 1, minHeight: 0 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={correlationData} barSize={48} margin={{ top: 10, right: 20, bottom: 5, left: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke={C.border} vertical={false} />
+                        <XAxis dataKey="age" tick={{ fill: C.muted, fontSize: 11, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
+                        <YAxis domain={[0, 100]} tick={{ fill: C.muted, fontSize: 11, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="avgRisk" name="Avg Risk Score" radius={[6, 6, 0, 0]}>
+                          {correlationData.map((_, i) => {
+                            const colors = [C.green2, C.gold, C.red, C.purple, C.muted];
+                            return <Cell key={i} fill={colors[i % colors.length]} />;
+                          })}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Breakdown table */}
+                <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, overflow: "hidden" }}>
+                  <div style={{ padding: "14px 20px", borderBottom: `1px solid ${C.border}` }}>
+                    <div style={S.chartTitle}>Contingency Table — Age Group × Engagement Level</div>
+                  </div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ background: C.surface }}>
+                        {["Age Group", "n", "Avg Risk", "☠️ Max (Survey)", "🔴 Critical (Pwd)", "🟠 High (File)", "Hypothesis"].map(h => (
+                          <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {correlationData.map((row, i) => {
+                        const scoreColor = row.avgRisk >= 80 ? C.purple : row.avgRisk >= 60 ? C.red : row.avgRisk >= 40 ? C.gold : C.green2;
+                        const h1Support = row.age === "Under 18" || row.age === "19–25" ? "✓ Supports H1" : row.age === "36+" ? "— Tests H1" : "— Neutral";
+                        const h1Color   = row.age === "Under 18" || row.age === "19–25" ? C.green2 : row.age === "36+" ? C.gold : C.muted;
+                        return (
+                          <tr key={i} style={{ borderTop: `1px solid ${C.border}` }}>
+                            <td style={{ ...S.td, fontWeight: 700, color: C.white }}>{row.age}</td>
+                            <td style={{ ...S.td, color: C.muted }}>{row.count}</td>
+                            <td style={{ ...S.td, color: scoreColor, fontWeight: 900, fontFamily: "monospace", fontSize: 15 }}>{row.avgRisk}</td>
+                            <td style={{ ...S.td, color: C.purple }}>{row.maxRisk}</td>
+                            <td style={{ ...S.td, color: C.critical }}>{row.critical}</td>
+                            <td style={{ ...S.td, color: C.red }}>{row.high}</td>
+                            <td style={S.td}><span style={{ color: h1Color, fontSize: 11, fontFamily: "monospace", fontWeight: 700 }}>{h1Support}</span></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Chi-Square note */}
+                <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 20px", display: "flex", gap: 20, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>H1 (Alternative)</div>
+                    <div style={{ fontSize: 12, color: C.green2, fontFamily: "monospace" }}>Younger individuals are more likely to engage with QR codes</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>H0 (Null)</div>
+                    <div style={{ fontSize: 12, color: C.muted, fontFamily: "monospace" }}>No significant relationship between age and QR engagement</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Statistical Test</div>
+                    <div style={{ fontSize: 12, color: C.gold, fontFamily: "monospace" }}>Chi-Square Test of Independence · α = .05</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Status</div>
+                    <div style={{ fontSize: 12, color: emails.length >= 30 ? C.green2 : C.gold, fontFamily: "monospace" }}>
+                      {emails.length >= 30 ? "✓ Sufficient data" : `⏳ Collecting data (${emails.length}/30 min recommended)`}
+                    </div>
+                  </div>
+                </div>
+              </>
             )}
           </div>
         )}
