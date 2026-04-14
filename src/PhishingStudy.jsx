@@ -36,24 +36,6 @@ In a real phishing attack, this file could have:
 -------------------------------------------------------
   👋 BUT DON'T WORRY — YOU'RE INVITED!
 -------------------------------------------------------
-
-You are cordially invited to learn more about:
-
-  ✅ Cybersecurity Awareness Training
-  ✅ Ethical Hacking & Penetration Testing
-  ✅ How to protect yourself online
-
-Join our Cybersecurity Club at Saint Leo University!
-
-  📧 Contact: cybersecurity@saintleo.edu
-  📍 Location: Kirk Hall, Room 101
-  📅 Meetings: Every Thursday at 6:00 PM
-
-Stay safe. Stay aware. Stay curious.
-
-— Saint Leo University Cybersecurity Research Team
-  Spring 2026 · IRB Approved Study
-=======================================================
 `;
 
 // ── Logo ──────────────────────────────────────────────────────────────────────
