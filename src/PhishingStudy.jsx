@@ -36,6 +36,24 @@ In a real phishing attack, this file could have:
 -------------------------------------------------------
   👋 BUT DON'T WORRY — YOU'RE INVITED!
 -------------------------------------------------------
+
+You are cordially invited to learn more about:
+
+  ✅ Cybersecurity Awareness Training
+  ✅ Ethical Hacking & Penetration Testing
+  ✅ How to protect yourself online
+
+Join our Cybersecurity Club at Saint Leo University!
+
+  📧 Contact: cybersecurity@saintleo.edu
+  📍 Location: Kirk Hall, Room 101
+  📅 Meetings: Every Thursday at 6:00 PM
+
+Stay safe. Stay aware. Stay curious.
+
+— Saint Leo University Cybersecurity Research Team
+  Spring 2026 · IRB Approved Study
+=======================================================
 `;
 
 // ── Logo ──────────────────────────────────────────────────────────────────────
@@ -348,6 +366,7 @@ function DebriefStage() {
       <p style={styles.sub}>
         You just participated in a <strong>cybersecurity research study</strong> conducted by
         Saint Leo University. No real credentials were captured or stored.
+        The short survey you completed helps us collect research data — thank you for your participation.
       </p>
       <div style={styles.alertBox}>
         <p style={{ fontWeight: 800, marginBottom: 10, color: "#7a0019", fontSize: 13 }}>⚠️ Red Flags on This Page</p>
