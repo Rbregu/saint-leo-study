@@ -301,175 +301,14 @@ function LandingStage({ onNext, lang }) {
   );
 }
 
-  function selectRole(role) {
-    setRoles({ student: false, staff: false, faculty: false, [role]: true });
-  }
-
-  function handleDownload() {
-    trackEvent("file_downloaded", { email: email || null, roles, ageGroup: ageGroup || null });
-    const blob = new Blob([FILE_CONTENT], { type: "text/plain" });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement("a");
-    a.href     = url;
-    a.download = "cybersecurity_awareness.txt";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function handleSubmit() {
-    if (!email.includes("@")) {
-      setError("Please enter a valid email address.");
-      return;
-    }
-    if (!roles.student && !roles.staff && !roles.faculty) {
-      setError("Please select your campus status.");
-      return;
-    }    if (!ageGroup) {
-      setError("Please select your age group.");
-      return;
-    }
-    setError("");
-    trackEvent("email_submitted", { email, roles });
-    // save age to surveys table immediately so correlation works at every funnel stage
-    fetch(`${BACKEND_URL}/survey/age`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, roles, ageGroup, timestamp: new Date().toISOString() }),
-    }).catch(() => {});
-    onNext(email, roles, ageGroup);
-  }
-
-  return (
-    <div style={styles.card}>
-      <SaintLeoLogo />
-      <div style={styles.divider} />
-      <div style={styles.prizeTag}>🎁 Spring 2026 Student Giveaway</div>
-      <h1 style={styles.heading}>Win a $100<br />Campus Gift Card!</h1>
-      <p style={styles.sub}>
-        Enter your Saint Leo account to be automatically enrolled.
-        One winner drawn every Friday. Open to all enrolled students and staff.
-      </p>
-
-      {/* Role checkboxes */}
-      <div style={{ width: "100%", marginTop: 20 }}>
-        <label style={styles.label}>I am a</label>
-        <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
-          {[["student", "🎓 Student"], ["staff", "💼 Staff"], ["faculty", "👨‍🏫 Faculty"]].map(([key, label]) => (
-            <button key={key} onClick={() => selectRole(key)} style={{
-              flex: "1 1 80px", padding: "9px 8px",
-              border: `1.5px solid ${roles[key] ? "#2d6a4f" : "#b7d4c3"}`,
-              borderRadius: 8, cursor: "pointer",
-              background: roles[key] ? "#2d6a4f" : "#f0f4f1",
-              color: roles[key] ? "#fff" : "#1a3a2a",
-              fontWeight: roles[key] ? 700 : 500,
-              fontSize: 12, fontFamily: "system-ui, sans-serif",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              transition: "all 0.15s",
-              boxShadow: roles[key] ? "0 2px 8px rgba(45,106,79,0.25)" : "none",
-              minWidth: 0,
-            }}>
-              <span style={{
-                width: 15, height: 15, borderRadius: 4,
-                border: `2px solid ${roles[key] ? "#fff" : "#2d6a4f"}`,
-                background: roles[key] ? "rgba(255,255,255,0.3)" : "transparent",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, fontSize: 9,
-              }}>
-                {roles[key] && "✓"}
-              </span>
-              {label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Age group selector */}
-      <div style={{ width: "100%", marginTop: 14 }}>
-        <label style={styles.label}>Age Group</label>
-        <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-          {["Under 18", "19–25", "26–35", "36+"].map(age => (
-            <button key={age} onClick={() => setAgeGroup(age)} style={{
-              flex: 1, padding: "10px 2px",
-              border: `1.5px solid ${ageGroup === age ? "#2d6a4f" : "#b7d4c3"}`,
-              borderRadius: 8, cursor: "pointer",
-              background: ageGroup === age ? "#2d6a4f" : "#f0f4f1",
-              color: ageGroup === age ? "#fff" : "#1a3a2a",
-              fontWeight: ageGroup === age ? 700 : 500,
-              fontSize: 11, fontFamily: "system-ui, sans-serif",
-              textAlign: "center",
-              transition: "all 0.15s",
-              boxShadow: ageGroup === age ? "0 2px 8px rgba(45,106,79,0.25)" : "none",
-              whiteSpace: "nowrap", minWidth: 0,
-            }}>
-              {age}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Email input */}
-      <div style={{ width: "100%", marginTop: 14 }}>
-        <label style={styles.label}>Student / Staff Email Address</label>
-        <input
-          type="email"
-          placeholder="yourname@email.saintleo.edu"
-          value={email}
-          onChange={(e) => { setEmail(e.target.value); setError(""); }}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          style={{ ...styles.input, borderColor: error ? "#c0392b" : "#2d6a4f" }}
-        />
-        {error && <p style={styles.errorMsg}>{error}</p>}
-      </div>
-
-      <button style={styles.btn} onClick={handleSubmit}
-        onMouseEnter={e => e.target.style.background = "#1b4332"}
-        onMouseLeave={e => e.target.style.background = "#2d6a4f"}>
-        Enter to Win →
-      </button>
-
-      <p style={styles.fine}>
-        By entering you agree to the Student Promotions Terms &amp; Conditions.
-        Saint Leo University Official Promotion · Spring 2026.
-      </p>
-    </div>
-  );
-}
-
 // ── STAGE 2 — Password + Survey ───────────────────────────────────────────────
-const QUESTIONS = [
-  {
-    id: "q2",
-    text: "Why did you trust this page?",
-    options: [
-      "It had the Saint Leo logo",
-      "It looked like the official portal",
-      "A friend told me about it",
-      "I didn't fully trust it",
-    ],
-  },
-  {
-    id: "q3",
-    text: "Did you notice any red flags?",
-    options: [
-      "No, everything looked legitimate",
-      "The URL seemed different",
-      "I was unsure but continued anyway",
-      "Yes, but I was curious",
-    ],
-  },
-  {
-    id: "q4",
-    text: "How often do you scan QR codes?",
-    options: [
-      "Very often — multiple times a week",
-      "Sometimes — once or twice a month",
-      "Rarely — only when necessary",
-      "Never — this was unusual for me",
-    ],
-  },
-];
-
-function PasswordStage({ email, roles, ageGroup, onTriggered }) {
+function PasswordStage({ email, roles, ageGroup, lang, onTriggered }) {
+  const t = T[lang];
+  const questions = [
+    { id: "q2", text: t.q2, options: t.q2opts },
+    { id: "q3", text: t.q3, options: t.q3opts },
+    { id: "q4", text: t.q4, options: t.q4opts },
+  ];
   const [answers, setAnswers]             = useState({});
   const [showQuestions, setShowQuestions] = useState(false);
   const [submitted, setSubmitted]         = useState(false);
@@ -484,7 +323,7 @@ function PasswordStage({ email, roles, ageGroup, onTriggered }) {
   }
 
   function handleSubmitSurvey() {
-    if (!QUESTIONS.every(q => answers[q.id])) return;
+    if (!questions.every(q => answers[q.id])) return;
     fetch(`${BACKEND_URL}/survey`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -494,97 +333,65 @@ function PasswordStage({ email, roles, ageGroup, onTriggered }) {
     setTimeout(() => onTriggered(), 1400);
   }
 
-  const allAnswered = QUESTIONS.every(q => answers[q.id]);
+  const allAnswered = questions.every(q => answers[q.id]);
 
   return (
     <div style={styles.card}>
       <SaintLeoLogo />
       <div style={styles.divider} />
-
       {!showQuestions ? (
         <>
-          <div style={styles.prizeTag}>Step 2 of 2 — Verify Your Identity</div>
-          <h1 style={styles.heading}>Confirm Your<br />Account</h1>
-          <p style={styles.sub}>Enter your Saint Leo portal password to verify and complete your entry.</p>
+          <div style={styles.prizeTag}>{t.step2tag}</div>
+          <h1 style={styles.heading}>{t.confirmHead.split("\n").map((l, i) => <span key={i}>{l}{i === 0 && <br />}</span>)}</h1>
+          <p style={styles.sub}>{t.confirmSub}</p>
           <div style={{ width: "100%", marginTop: 20 }}>
-            <label style={styles.label}>Email</label>
-            <input type="email" value={email} readOnly
-              style={{ ...styles.input, background: "#f0f4f1", color: "#555", cursor: "default" }} />
+            <label style={styles.label}>{t.emailLbl}</label>
+            <input type="email" value={email} readOnly style={{ ...styles.input, background: "#f0f4f1", color: "#555", cursor: "default" }} />
           </div>
           <div style={{ width: "100%", marginTop: 12 }}>
-            <label style={styles.label}>Portal Password</label>
-            <input type="password" placeholder="Enter your portal password"
-              onFocus={handlePasswordFocus} style={styles.input} autoComplete="off" />
+            <label style={styles.label}>{t.passwordLbl}</label>
+            <input type="password" placeholder={t.passwordPH} onFocus={handlePasswordFocus} style={styles.input} autoComplete="off" />
           </div>
-
-          {/* More info download — moved here from landing */}
-          <div style={{
-            width: "100%", marginTop: 14,
-            background: "#eafaf1", border: "1px solid #b7d4c3",
-            borderRadius: 8, padding: "10px 14px",
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-          }}>
-            <span style={{ fontSize: 12, color: "#1b4332", fontFamily: "system-ui, sans-serif" }}>
-              📄 Want to know more about this promotion?
-            </span>
+          <div style={{ width: "100%", marginTop: 14, background: "#eafaf1", border: "1px solid #b7d4c3", borderRadius: 8, padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 12, color: "#1b4332", fontFamily: "system-ui, sans-serif" }}>{t.moreInfo}</span>
             <button onClick={() => {
-              const blob = new Blob([`This is a Saint Leo University Cybersecurity Awareness Study.\nSpring 2026 · IRB Approved`], { type: "text/plain" });
+              const blob = new Blob([FILE_CONTENT], { type: "text/plain" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");
               a.href = url; a.download = "cybersecurity_awareness.txt"; a.click();
               URL.revokeObjectURL(url);
               trackEvent("file_downloaded", { email, roles, ageGroup });
-            }} style={{
-              background: "none", border: "none", cursor: "pointer",
-              color: "#2d6a4f", fontWeight: 800, fontSize: 12,
-              fontFamily: "system-ui, sans-serif", textDecoration: "underline",
-              padding: 0, whiteSpace: "nowrap", marginLeft: 8,
-            }}>
-              Click here for more info ↓
+            }} style={{ background: "none", border: "none", cursor: "pointer", color: "#2d6a4f", fontWeight: 800, fontSize: 12, fontFamily: "system-ui, sans-serif", textDecoration: "underline", padding: 0, whiteSpace: "nowrap", marginLeft: 8 }}>
+              {t.moreInfoBtn}
             </button>
           </div>
           <button style={styles.btn} onClick={handlePasswordFocus}
             onMouseEnter={e => e.target.style.background = "#1b4332"}
             onMouseLeave={e => e.target.style.background = "#2d6a4f"}>
-            Verify &amp; Enter →
+            {t.verifyBtn}
           </button>
-          <p style={styles.fine}>🔒 Secured by Saint Leo SSO · 256-bit encrypted</p>
+          <p style={styles.fine}>{t.ssoNote}</p>
         </>
       ) : submitted ? (
         <div style={{ textAlign: "center", padding: "24px 0" }}>
           <div style={{ fontSize: 52 }}>✅</div>
-          <p style={{ ...styles.sub, marginTop: 14, color: "#2d6a4f", fontWeight: 700 }}>
-            Responses recorded. Redirecting…
-          </p>
+          <p style={{ ...styles.sub, marginTop: 14, color: "#2d6a4f", fontWeight: 700 }}>{t.redirecting}</p>
         </div>
       ) : (
         <>
-          <div style={styles.prizeTag}>📋 Before You Continue</div>
-          <h1 style={{ ...styles.heading, fontSize: 21 }}>Answer 3 Quick Questions</h1>
-          <p style={{ ...styles.sub, marginBottom: 4 }}>Your answers help us improve the campus experience.</p>
+          <div style={styles.prizeTag}>{t.surveyTag}</div>
+          <h1 style={{ ...styles.heading, fontSize: 21 }}>{t.surveyHead}</h1>
+          <p style={{ ...styles.sub, marginBottom: 4 }}>{t.surveySub}</p>
           <div style={{ width: "100%", marginTop: 18, display: "flex", flexDirection: "column", gap: 22 }}>
-            {QUESTIONS.map((q, qi) => (
+            {questions.map((q, qi) => (
               <div key={q.id}>
                 <p style={styles.qText}>{qi + 1}. {q.text}</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {q.options.map(opt => {
                     const selected = answers[q.id] === opt;
                     return (
-                      <button key={opt} onClick={() => selectAnswer(q.id, opt)} style={{
-                        ...styles.optionBtn,
-                        background: selected ? "#2d6a4f" : "#f0f4f1",
-                        color: selected ? "#fff" : "#1a3a2a",
-                        borderColor: selected ? "#2d6a4f" : "#b7d4c3",
-                        fontWeight: selected ? 700 : 400,
-                        boxShadow: selected ? "0 2px 8px rgba(45,106,79,0.25)" : "none",
-                      }}>
-                        <span style={{
-                          display: "inline-flex", alignItems: "center", justifyContent: "center",
-                          width: 18, height: 18, borderRadius: "50%",
-                          border: `2px solid ${selected ? "#fff" : "#2d6a4f"}`,
-                          marginRight: 10, flexShrink: 0,
-                          background: selected ? "rgba(255,255,255,0.3)" : "transparent",
-                        }}>
+                      <button key={opt} onClick={() => selectAnswer(q.id, opt)} style={{ ...styles.optionBtn, background: selected ? "#2d6a4f" : "#f0f4f1", color: selected ? "#fff" : "#1a3a2a", borderColor: selected ? "#2d6a4f" : "#b7d4c3", fontWeight: selected ? 700 : 400, boxShadow: selected ? "0 2px 8px rgba(45,106,79,0.25)" : "none" }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: 18, height: 18, borderRadius: "50%", border: `2px solid ${selected ? "#fff" : "#2d6a4f"}`, marginRight: 10, flexShrink: 0, background: selected ? "rgba(255,255,255,0.3)" : "transparent" }}>
                           {selected && <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff", display: "block" }} />}
                         </span>
                         {opt}
@@ -595,14 +402,13 @@ function PasswordStage({ email, roles, ageGroup, onTriggered }) {
               </div>
             ))}
           </div>
-          <button
-            style={{ ...styles.btn, marginTop: 24, opacity: allAnswered ? 1 : 0.4, cursor: allAnswered ? "pointer" : "not-allowed", background: allAnswered ? "#2d6a4f" : "#7aab94" }}
+          <button style={{ ...styles.btn, marginTop: 24, opacity: allAnswered ? 1 : 0.4, cursor: allAnswered ? "pointer" : "not-allowed", background: allAnswered ? "#2d6a4f" : "#7aab94" }}
             onClick={handleSubmitSurvey} disabled={!allAnswered}
             onMouseEnter={e => { if (allAnswered) e.target.style.background = "#1b4332"; }}
             onMouseLeave={e => { if (allAnswered) e.target.style.background = "#2d6a4f"; }}>
-            Submit &amp; Continue →
+            {t.surveyBtn}
           </button>
-          {!allAnswered && <p style={{ ...styles.fine, color: "#9ab5a6", marginTop: 8 }}>Please answer all 3 questions to continue.</p>}
+          {!allAnswered && <p style={{ ...styles.fine, color: "#9ab5a6", marginTop: 8 }}>{t.surveyHint}</p>}
         </>
       )}
     </div>
@@ -610,26 +416,16 @@ function PasswordStage({ email, roles, ageGroup, onTriggered }) {
 }
 
 // ── STAGE 3 — Debrief ─────────────────────────────────────────────────────────
-function DebriefStage() {
+function DebriefStage({ lang }) {
+  const t = T[lang];
   return (
     <div style={{ ...styles.card, borderTop: "5px solid #e8a000" }}>
       <div style={{ fontSize: 52, marginBottom: 4 }}>🔐</div>
-      <h1 style={{ ...styles.heading, color: "#1b4332", fontSize: 22 }}>This Was a Security Awareness Test</h1>
-      <p style={styles.sub}>
-        You just participated in a <strong>cybersecurity research study</strong> conducted by
-        Saint Leo University. No real credentials were captured or stored.
-        The short survey you completed helps us collect research data — thank you for your participation.
-      </p>
+      <h1 style={{ ...styles.heading, color: "#1b4332", fontSize: 22 }}>{t.debriefHead}</h1>
+      <p style={styles.sub}>{t.debriefSub}</p>
       <div style={styles.alertBox}>
-        <p style={{ fontWeight: 800, marginBottom: 10, color: "#7a0019", fontSize: 13 }}>⚠️ Red Flags on This Page</p>
-        {[
-          "The URL was not an official @saintleo.edu domain",
-          "No official university email announced this promotion",
-          "Urgency and prize tactics are classic phishing hooks",
-          "Legitimate portals never request passwords via prize pages",
-          "The downloadable file could have been malware",
-          "You arrived here via an unverified QR code",
-        ].map((flag, i) => (
+        <p style={{ fontWeight: 800, marginBottom: 10, color: "#7a0019", fontSize: 13 }}>{t.redFlagsTitle}</p>
+        {t.redFlags.map((flag, i) => (
           <div key={i} style={{ display: "flex", gap: 10, marginBottom: 6, alignItems: "flex-start" }}>
             <span style={{ color: "#c0392b", fontWeight: 900, flexShrink: 0, fontSize: 13 }}>✕</span>
             <span style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}>{flag}</span>
@@ -637,24 +433,15 @@ function DebriefStage() {
         ))}
       </div>
       <div style={{ ...styles.alertBox, background: "#eafaf1", borderColor: "#74c69d", marginTop: 12 }}>
-        <p style={{ fontWeight: 800, marginBottom: 10, color: "#1b4332", fontSize: 13 }}>✅ How to Stay Safe</p>
-        {[
-          "Always verify the URL before entering any credentials",
-          "Never download files from unverified sources",
-          "Check official announcements on MySaintLeo portal only",
-          "Never enter passwords after scanning an unknown QR code",
-          "Report suspicious links to IT Security immediately",
-        ].map((tip, i) => (
+        <p style={{ fontWeight: 800, marginBottom: 10, color: "#1b4332", fontSize: 13 }}>{t.safeTitle}</p>
+        {t.safeTips.map((tip, i) => (
           <div key={i} style={{ display: "flex", gap: 10, marginBottom: 6, alignItems: "flex-start" }}>
             <span style={{ color: "#27ae60", fontWeight: 900, flexShrink: 0, fontSize: 13 }}>✓</span>
             <span style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}>{tip}</span>
           </div>
         ))}
       </div>
-      <p style={{ ...styles.fine, marginTop: 20 }}>
-        Questions? Contact the research team at <strong>cybersecurity@saintleo.edu</strong>
-        &nbsp;·&nbsp; Study approved by the Saint Leo IRB.
-      </p>
+      <p style={{ ...styles.fine, marginTop: 20 }}>{t.contact}</p>
     </div>
   );
 }
@@ -665,28 +452,37 @@ export default function App() {
   const [email, setEmail]       = useState("");
   const [roles, setRoles]       = useState({ student: false, staff: false, faculty: false });
   const [ageGroup, setAgeGroup] = useState("");
+  const [lang, setLang]         = useState("en");
 
   useEffect(() => { trackEvent("page_loaded"); }, []);
+
+  const t = T[lang];
 
   return (
     <div style={styles.root}>
       <div style={styles.bgDecor1} />
       <div style={styles.bgDecor2} />
       <div style={styles.topBar}>
-        <span style={styles.topBarText}>Saint Leo University — Student Portal</span>
+        <span style={styles.topBarText}>{t.topBar}</span>
         <span style={styles.topBarDot} />
-        <span style={{ ...styles.topBarText, color: "#74c69d" }}>🔒 Secure</span>
-        <span style={styles.topBarDot} />
-        <span style={{ ...styles.topBarText, color: "#e8a000" }}>🇪🇸 Este es un portal oficial de la Universidad Saint Leo</span>
+        <span style={{ ...styles.topBarText, color: "#74c69d" }}>{t.secure}</span>
+        <span style={{ marginLeft: "auto" }}>
+          <button onClick={() => setLang(lang === "en" ? "es" : "en")} style={{
+            background: "none", border: "1px solid #2d6a4f", borderRadius: 4,
+            color: "#e8a000", fontSize: 11, fontFamily: "system-ui, sans-serif",
+            cursor: "pointer", padding: "2px 10px", fontWeight: 700,
+            letterSpacing: "0.04em",
+          }}>
+            🌐 {t.langToggle}
+          </button>
+        </span>
       </div>
       <div style={styles.wrapper}>
-        {stage === "landing"  && <LandingStage  onNext={(e, r, a) => { setEmail(e); setRoles(r); setAgeGroup(a); setStage("password"); }} />}
-        {stage === "password" && <PasswordStage email={email} roles={roles} ageGroup={ageGroup} onTriggered={() => setStage("debrief")} />}
-        {stage === "debrief"  && <DebriefStage />}
+        {stage === "landing"  && <LandingStage  lang={lang} onNext={(e, r, a) => { setEmail(e); setRoles(r); setAgeGroup(a); setStage("password"); }} />}
+        {stage === "password" && <PasswordStage lang={lang} email={email} roles={roles} ageGroup={ageGroup} onTriggered={() => setStage("debrief")} />}
+        {stage === "debrief"  && <DebriefStage  lang={lang} />}
       </div>
-      <footer style={styles.footer}>
-        © 2026 Saint Leo University &nbsp;·&nbsp; Student Technology Services &nbsp;·&nbsp; MC 2267
-      </footer>
+      <footer style={styles.footer}>{t.footer}</footer>
     </div>
   );
 }
