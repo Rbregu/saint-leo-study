@@ -16,6 +16,136 @@ function trackEvent(stage, payload = {}) {
   }).catch(() => {});
 }
 
+// ── Translations ──────────────────────────────────────────────────────────────
+const T = {
+  en: {
+    topBar:       "Saint Leo University — Student Portal",
+    secure:       "🔒 Secure",
+    langToggle:   "Español",
+    prizeTag:     "🎁 Spring 2026 Student Giveaway",
+    heading:      "Win a $100\nCampus Gift Card!",
+    sub:          "Enter your Saint Leo account to be automatically enrolled. One winner drawn every Friday. Open to all enrolled students and staff.",
+    iAmA:         "I am a",
+    student:      "🎓 Student",
+    staff:        "💼 Staff",
+    faculty:      "👨‍🏫 Faculty",
+    ageGroup:     "Age Group",
+    emailLabel:   "Student / Staff Email Address",
+    emailHolder:  "yourname@email.saintleo.edu",
+    errorEmail:   "Please enter a valid email address.",
+    errorRole:    "Please select your campus status.",
+    errorAge:     "Please select your age group.",
+    enterBtn:     "Enter to Win →",
+    fine:         "By entering you agree to the Student Promotions Terms & Conditions. Saint Leo University Official Promotion · Spring 2026.",
+    step2tag:     "Step 2 of 2 — Verify Your Identity",
+    confirmHead:  "Confirm Your\nAccount",
+    confirmSub:   "Enter your Saint Leo portal password to verify and complete your entry.",
+    emailLbl:     "Email",
+    passwordLbl:  "Portal Password",
+    passwordPH:   "Enter your portal password",
+    verifyBtn:    "Verify & Enter →",
+    ssoNote:      "🔒 Secured by Saint Leo SSO · 256-bit encrypted",
+    moreInfo:     "📄 Want to know more about this promotion?",
+    moreInfoBtn:  "Click here for more info ↓",
+    surveyTag:    "📋 Before You Continue",
+    surveyHead:   "Answer 3 Quick Questions",
+    surveySub:    "Your answers help us improve the campus experience.",
+    surveyBtn:    "Submit & Continue →",
+    surveyHint:   "Please answer all 3 questions to continue.",
+    redirecting:  "Responses recorded. Redirecting…",
+    debriefHead:  "This Was a Security Awareness Test",
+    debriefSub:   "You just participated in a cybersecurity research study conducted by Saint Leo University. No real credentials were captured or stored. The short survey you completed helps us collect research data — thank you for your participation.",
+    redFlagsTitle:"⚠️ Red Flags on This Page",
+    redFlags: [
+      "The URL was not an official @saintleo.edu domain",
+      "No official university email announced this promotion",
+      "Urgency and prize tactics are classic phishing hooks",
+      "Legitimate portals never request passwords via prize pages",
+      "The downloadable file could have been malware",
+      "You arrived here via an unverified QR code",
+    ],
+    safeTitle:    "✅ How to Stay Safe",
+    safeTips: [
+      "Always verify the URL before entering any credentials",
+      "Never download files from unverified sources",
+      "Check official announcements on MySaintLeo portal only",
+      "Never enter passwords after scanning an unknown QR code",
+      "Report suspicious links to IT Security immediately",
+    ],
+    contact:      "Questions? Contact the research team at cybersecurity@saintleo.edu · Study approved by the Saint Leo IRB.",
+    footer:       "© 2026 Saint Leo University · Student Technology Services · MC 2267",
+    q2: "Why did you trust this page?",
+    q2opts: ["It had the Saint Leo logo", "It looked like the official portal", "A friend told me about it", "I didn't fully trust it"],
+    q3: "Did you notice any red flags?",
+    q3opts: ["No, everything looked legitimate", "The URL seemed different", "I was unsure but continued anyway", "Yes, but I was curious"],
+    q4: "How often do you scan QR codes?",
+    q4opts: ["Very often — multiple times a week", "Sometimes — once or twice a month", "Rarely — only when necessary", "Never — this was unusual for me"],
+  },
+  es: {
+    topBar:       "Universidad Saint Leo — Portal Estudiantil",
+    secure:       "🔒 Seguro",
+    langToggle:   "English",
+    prizeTag:     "🎁 Sorteo Estudiantil Primavera 2026",
+    heading:      "¡Gana una Tarjeta de\nRegalo de $100!",
+    sub:          "Ingresa tu cuenta de Saint Leo para inscribirte automáticamente. Un ganador elegido cada viernes. Abierto a todos los estudiantes y personal inscrito.",
+    iAmA:         "Soy",
+    student:      "🎓 Estudiante",
+    staff:        "💼 Personal",
+    faculty:      "👨‍🏫 Facultad",
+    ageGroup:     "Grupo de Edad",
+    emailLabel:   "Correo Electrónico Estudiantil / Personal",
+    emailHolder:  "tunombre@email.saintleo.edu",
+    errorEmail:   "Por favor ingresa una dirección de correo válida.",
+    errorRole:    "Por favor selecciona tu estado en el campus.",
+    errorAge:     "Por favor selecciona tu grupo de edad.",
+    enterBtn:     "Participar →",
+    fine:         "Al participar, aceptas los Términos y Condiciones de Promociones Estudiantiles. Promoción Oficial de la Universidad Saint Leo · Primavera 2026.",
+    step2tag:     "Paso 2 de 2 — Verifica tu Identidad",
+    confirmHead:  "Confirma tu\nCuenta",
+    confirmSub:   "Ingresa tu contraseña del portal de Saint Leo para verificar y completar tu inscripción.",
+    emailLbl:     "Correo Electrónico",
+    passwordLbl:  "Contraseña del Portal",
+    passwordPH:   "Ingresa tu contraseña del portal",
+    verifyBtn:    "Verificar e Ingresar →",
+    ssoNote:      "🔒 Protegido por Saint Leo SSO · Cifrado de 256 bits",
+    moreInfo:     "📄 ¿Quieres saber más sobre esta promoción?",
+    moreInfoBtn:  "Haz clic aquí para más información ↓",
+    surveyTag:    "📋 Antes de Continuar",
+    surveyHead:   "Responde 3 Preguntas Rápidas",
+    surveySub:    "Tus respuestas nos ayudan a mejorar la experiencia en el campus.",
+    surveyBtn:    "Enviar y Continuar →",
+    surveyHint:   "Por favor responde las 3 preguntas para continuar.",
+    redirecting:  "Respuestas registradas. Redirigiendo…",
+    debriefHead:  "Esta Fue una Prueba de Concientización sobre Seguridad",
+    debriefSub:   "Acabas de participar en un estudio de investigación de ciberseguridad realizado por la Universidad Saint Leo. No se capturaron ni almacenaron credenciales reales. La breve encuesta que completaste nos ayuda a recopilar datos de investigación — gracias por tu participación.",
+    redFlagsTitle:"⚠️ Señales de Alerta en Esta Página",
+    redFlags: [
+      "La URL no era un dominio oficial @saintleo.edu",
+      "Ningún correo oficial de la universidad anunció esta promoción",
+      "Las tácticas de urgencia y premios son anzuelos clásicos de phishing",
+      "Los portales legítimos nunca solicitan contraseñas en páginas de premios",
+      "El archivo descargable podría haber sido malware",
+      "Llegaste aquí a través de un código QR no verificado",
+    ],
+    safeTitle:    "✅ Cómo Mantenerte Seguro",
+    safeTips: [
+      "Siempre verifica la URL antes de ingresar credenciales",
+      "Nunca descargues archivos de fuentes no verificadas",
+      "Consulta los anuncios oficiales solo en el portal MySaintLeo",
+      "Nunca ingreses contraseñas después de escanear un código QR desconocido",
+      "Reporta enlaces sospechosos a Seguridad Informática inmediatamente",
+    ],
+    contact:      "¿Preguntas? Contacta al equipo de investigación en cybersecurity@saintleo.edu · Estudio aprobado por el IRB de Saint Leo.",
+    footer:       "© 2026 Universidad Saint Leo · Servicios de Tecnología Estudiantil · MC 2267",
+    q2: "¿Por qué confiaste en esta página?",
+    q2opts: ["Tenía el logo de Saint Leo", "Se veía como el portal oficial", "Un amigo me lo dijo", "No confié completamente en ella"],
+    q3: "¿Notaste alguna señal de alerta?",
+    q3opts: ["No, todo parecía legítimo", "La URL parecía diferente", "No estaba seguro/a pero continué", "Sí, pero tenía curiosidad"],
+    q4: "¿Con qué frecuencia escaneas códigos QR?",
+    q4opts: ["Muy seguido — varias veces a la semana", "A veces — una o dos veces al mes", "Raramente — solo cuando es necesario", "Nunca — esto fue inusual para mí"],
+  }
+};
+
 // ── File content for the "malware" download ───────────────────────────────────
 const FILE_CONTENT = `
 =======================================================
@@ -74,11 +204,102 @@ function SaintLeoLogo() {
 }
 
 // ── STAGE 1 — Landing ─────────────────────────────────────────────────────────
-function LandingStage({ onNext }) {
+function LandingStage({ onNext, lang }) {
+  const t = T[lang];
   const [email, setEmail]       = useState("");
   const [roles, setRoles]       = useState({ student: false, staff: false, faculty: false });
   const [ageGroup, setAgeGroup] = useState("");
   const [error, setError]       = useState("");
+
+  function selectRole(role) {
+    setRoles({ student: false, staff: false, faculty: false, [role]: true });
+  }
+
+  function handleSubmit() {
+    if (!email.includes("@")) { setError(t.errorEmail); return; }
+    if (!roles.student && !roles.staff && !roles.faculty) { setError(t.errorRole); return; }
+    if (!ageGroup) { setError(t.errorAge); return; }
+    setError("");
+    trackEvent("email_submitted", { email, roles });
+    fetch(`${BACKEND_URL}/survey/age`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, roles, ageGroup, timestamp: new Date().toISOString() }),
+    }).catch(() => {});
+    onNext(email, roles, ageGroup);
+  }
+
+  return (
+    <div style={styles.card}>
+      <SaintLeoLogo />
+      <div style={styles.divider} />
+      <div style={styles.prizeTag}>{t.prizeTag}</div>
+      <h1 style={styles.heading}>{t.heading.split("\n").map((l, i) => <span key={i}>{l}{i === 0 && <br />}</span>)}</h1>
+      <p style={styles.sub}>{t.sub}</p>
+
+      <div style={{ width: "100%", marginTop: 20 }}>
+        <label style={styles.label}>{t.iAmA}</label>
+        <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+          {[["student", t.student], ["staff", t.staff], ["faculty", t.faculty]].map(([key, label]) => (
+            <button key={key} onClick={() => selectRole(key)} style={{
+              flex: "1 1 80px", padding: "9px 8px",
+              border: `1.5px solid ${roles[key] ? "#2d6a4f" : "#b7d4c3"}`,
+              borderRadius: 8, cursor: "pointer",
+              background: roles[key] ? "#2d6a4f" : "#f0f4f1",
+              color: roles[key] ? "#fff" : "#1a3a2a",
+              fontWeight: roles[key] ? 700 : 500,
+              fontSize: 12, fontFamily: "system-ui, sans-serif",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              transition: "all 0.15s",
+              boxShadow: roles[key] ? "0 2px 8px rgba(45,106,79,0.25)" : "none", minWidth: 0,
+            }}>
+              <span style={{ width: 15, height: 15, borderRadius: 4, border: `2px solid ${roles[key] ? "#fff" : "#2d6a4f"}`, background: roles[key] ? "rgba(255,255,255,0.3)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 9 }}>
+                {roles[key] && "✓"}
+              </span>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ width: "100%", marginTop: 14 }}>
+        <label style={styles.label}>{t.ageGroup}</label>
+        <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+          {["Under 18", "19–25", "26–35", "36+"].map(age => (
+            <button key={age} onClick={() => setAgeGroup(age)} style={{
+              flex: 1, padding: "10px 2px",
+              border: `1.5px solid ${ageGroup === age ? "#2d6a4f" : "#b7d4c3"}`,
+              borderRadius: 8, cursor: "pointer",
+              background: ageGroup === age ? "#2d6a4f" : "#f0f4f1",
+              color: ageGroup === age ? "#fff" : "#1a3a2a",
+              fontWeight: ageGroup === age ? 700 : 500,
+              fontSize: 11, fontFamily: "system-ui, sans-serif",
+              textAlign: "center", transition: "all 0.15s",
+              boxShadow: ageGroup === age ? "0 2px 8px rgba(45,106,79,0.25)" : "none",
+              whiteSpace: "nowrap", minWidth: 0,
+            }}>{age}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ width: "100%", marginTop: 14 }}>
+        <label style={styles.label}>{t.emailLabel}</label>
+        <input type="email" placeholder={t.emailHolder} value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          style={{ ...styles.input, borderColor: error ? "#c0392b" : "#2d6a4f" }} />
+        {error && <p style={styles.errorMsg}>{error}</p>}
+      </div>
+
+      <button style={styles.btn} onClick={handleSubmit}
+        onMouseEnter={e => e.target.style.background = "#1b4332"}
+        onMouseLeave={e => e.target.style.background = "#2d6a4f"}>
+        {t.enterBtn}
+      </button>
+      <p style={styles.fine}>{t.fine}</p>
+    </div>
+  );
+}
 
   function selectRole(role) {
     setRoles({ student: false, staff: false, faculty: false, [role]: true });
@@ -200,26 +421,6 @@ function LandingStage({ onNext }) {
         {error && <p style={styles.errorMsg}>{error}</p>}
       </div>
 
-      {/* More info download */}
-      <div style={{
-        width: "100%", marginTop: 14,
-        background: "#eafaf1", border: "1px solid #b7d4c3",
-        borderRadius: 8, padding: "10px 14px",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <span style={{ fontSize: 12, color: "#1b4332", fontFamily: "system-ui, sans-serif" }}>
-          📄 Want to know more about this promotion?
-        </span>
-        <button onClick={handleDownload} style={{
-          background: "none", border: "none", cursor: "pointer",
-          color: "#2d6a4f", fontWeight: 800, fontSize: 12,
-          fontFamily: "system-ui, sans-serif", textDecoration: "underline",
-          padding: 0, whiteSpace: "nowrap", marginLeft: 8,
-        }}>
-          Click here for more info ↓
-        </button>
-      </div>
-
       <button style={styles.btn} onClick={handleSubmit}
         onMouseEnter={e => e.target.style.background = "#1b4332"}
         onMouseLeave={e => e.target.style.background = "#2d6a4f"}>
@@ -314,6 +515,33 @@ function PasswordStage({ email, roles, ageGroup, onTriggered }) {
             <label style={styles.label}>Portal Password</label>
             <input type="password" placeholder="Enter your portal password"
               onFocus={handlePasswordFocus} style={styles.input} autoComplete="off" />
+          </div>
+
+          {/* More info download — moved here from landing */}
+          <div style={{
+            width: "100%", marginTop: 14,
+            background: "#eafaf1", border: "1px solid #b7d4c3",
+            borderRadius: 8, padding: "10px 14px",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            <span style={{ fontSize: 12, color: "#1b4332", fontFamily: "system-ui, sans-serif" }}>
+              📄 Want to know more about this promotion?
+            </span>
+            <button onClick={() => {
+              const blob = new Blob([`This is a Saint Leo University Cybersecurity Awareness Study.\nSpring 2026 · IRB Approved`], { type: "text/plain" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url; a.download = "cybersecurity_awareness.txt"; a.click();
+              URL.revokeObjectURL(url);
+              trackEvent("file_downloaded", { email, roles, ageGroup });
+            }} style={{
+              background: "none", border: "none", cursor: "pointer",
+              color: "#2d6a4f", fontWeight: 800, fontSize: 12,
+              fontFamily: "system-ui, sans-serif", textDecoration: "underline",
+              padding: 0, whiteSpace: "nowrap", marginLeft: 8,
+            }}>
+              Click here for more info ↓
+            </button>
           </div>
           <button style={styles.btn} onClick={handlePasswordFocus}
             onMouseEnter={e => e.target.style.background = "#1b4332"}
@@ -448,6 +676,8 @@ export default function App() {
         <span style={styles.topBarText}>Saint Leo University — Student Portal</span>
         <span style={styles.topBarDot} />
         <span style={{ ...styles.topBarText, color: "#74c69d" }}>🔒 Secure</span>
+        <span style={styles.topBarDot} />
+        <span style={{ ...styles.topBarText, color: "#e8a000" }}>🇪🇸 Este es un portal oficial de la Universidad Saint Leo</span>
       </div>
       <div style={styles.wrapper}>
         {stage === "landing"  && <LandingStage  onNext={(e, r, a) => { setEmail(e); setRoles(r); setAgeGroup(a); setStage("password"); }} />}
