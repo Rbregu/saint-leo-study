@@ -81,10 +81,23 @@ function LiveDot() {
   );
 }
 
-function StatCard({ label, value, sub, accent, icon, pct }) {
+function StatCard({ label, value, sub, accent, icon, pct, onClick, selected }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "18px 20px", borderTop: `3px solid ${accent || C.green1}`, display: "flex", flexDirection: "column", gap: 5 }}>
-      <div style={{ fontSize: 20 }}>{icon}</div>
+    <div
+      onClick={onClick}
+      style={{
+        background: C.card, border: `1px solid ${selected ? accent : C.border}`,
+        borderRadius: 12, padding: "18px 20px",
+        borderTop: `3px solid ${accent || C.green1}`,
+        display: "flex", flexDirection: "column", gap: 5,
+        cursor: onClick ? "pointer" : "default",
+        transition: "border 0.15s",
+        boxShadow: selected ? `0 0 12px ${accent}30` : "none",
+      }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div style={{ fontSize: 20 }}>{icon}</div>
+        {onClick && <span style={{ fontSize: 9, color: selected ? accent : C.muted, fontFamily: "monospace" }}>{selected ? "▼ hide" : "▼ ages"}</span>}
+      </div>
       <div style={{ fontSize: "2.4vw", fontWeight: 900, color: accent || C.green2, fontFamily: "'Georgia', serif", lineHeight: 1 }}>
         <AnimNum value={value} />
       </div>
@@ -427,6 +440,7 @@ export default function Dashboard() {
   const [error, setError]           = useState(null);
   const [selectedUser, setSelectedUser]     = useState(null);
   const [selectedSurvey, setSelectedSurvey] = useState(null);
+  const [selectedCard, setSelectedCard]     = useState(null);
 
   async function fetchData() {
     try {
@@ -554,12 +568,58 @@ export default function Dashboard() {
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 2vw", boxSizing: "border-box" }}>
 
         {/* stat cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1vw", marginBottom: "1.2vh" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "1vw", marginBottom: selectedCard ? "0.4vh" : "1.2vh" }}>
           <StatCard icon="📡" label="Total Scans"       value={s.totalScans}          accent={C.green2}  sub="QR code visits" />
-          <StatCard icon="📧" label="Emails Submitted"  value={s.emailsSubmitted}     accent={C.green3}  sub="Entered email"       pct={emailPct} />
-          <StatCard icon="📥" label="File Downloads"    value={s.fileDownloads}       accent={C.blue}    sub="Potential malware"   pct={downloadPct} />
-          <StatCard icon="🔑" label="Password Clicks"   value={s.passwordsAttempted}  accent={C.red}     sub="Critical risk"       pct={riskPct} />
+          <StatCard icon="📧" label="Emails Submitted"  value={s.emailsSubmitted}     accent={C.green3}  sub="Entered email"       pct={emailPct}    onClick={() => setSelectedCard(selectedCard === "emails"    ? null : "emails")}    selected={selectedCard === "emails"} />
+          <StatCard icon="📥" label="File Downloads"    value={s.fileDownloads}       accent={C.blue}    sub="Potential malware"   pct={downloadPct} onClick={() => setSelectedCard(selectedCard === "downloads" ? null : "downloads")} selected={selectedCard === "downloads"} />
+          <StatCard icon="🔑" label="Password Clicks"   value={s.passwordsAttempted}  accent={C.red}     sub="Critical risk"       pct={riskPct}     onClick={() => setSelectedCard(selectedCard === "password"  ? null : "password")}  selected={selectedCard === "password"} />
         </div>
+
+        {/* Age breakdown panel for clicked stat card */}
+        {selectedCard && (() => {
+          const AGE_ORDER = ["Under 18", "19–25", "26–35", "36+"];
+          const AGE_COLORS = { "Under 18": C.green2, "19–25": C.green3, "26–35": C.gold, "36+": C.red };
+          const filtered = emails.filter(e => e.ageGroup && AGE_ORDER.includes(e.ageGroup) && (
+            selectedCard === "emails"    ? true :
+            selectedCard === "downloads" ? e.downloadedFile :
+            e.passwordClicked
+          ));
+          const total = filtered.length;
+          const breakdown = AGE_ORDER.map(age => ({
+            age, count: filtered.filter(e => e.ageGroup === age).length
+          })).filter(a => a.count > 0);
+          const label = selectedCard === "emails" ? "Emails Submitted" : selectedCard === "downloads" ? "File Downloads" : "Password Clicks";
+          const accent = selectedCard === "emails" ? C.green3 : selectedCard === "downloads" ? C.blue : C.red;
+          return (
+            <div style={{ background: C.surface, border: `1px solid ${accent}44`, borderRadius: 12, padding: "14px 20px", marginBottom: "1.2vh", display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: accent, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Age Breakdown — {label} ({total} participants with age data)
+                </div>
+                <button onClick={() => setSelectedCard(null)} style={{ background: "none", border: "none", color: C.muted, cursor: "pointer", fontSize: 12, fontFamily: "monospace" }}>✕</button>
+              </div>
+              {breakdown.length === 0 ? (
+                <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 12 }}>No age data available yet for this metric.</p>
+              ) : (
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  {breakdown.map(({ age, count: ac }) => {
+                    const pct = Math.round((ac / total) * 100);
+                    return (
+                      <div key={age} style={{ flex: 1, minWidth: 120, background: C.card, borderRadius: 8, padding: "10px 14px", border: `1px solid ${AGE_COLORS[age]}44` }}>
+                        <div style={{ fontSize: 10, color: AGE_COLORS[age], fontFamily: "monospace", fontWeight: 800, marginBottom: 6 }}>🎂 {age}</div>
+                        <div style={{ fontSize: 22, fontWeight: 900, color: AGE_COLORS[age], fontFamily: "monospace" }}>{ac}</div>
+                        <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 2 }}>{pct}% of this group</div>
+                        <div style={{ height: 4, borderRadius: 2, background: C.border, marginTop: 8 }}>
+                          <div style={{ height: "100%", width: `${pct}%`, background: AGE_COLORS[age], borderRadius: 2, transition: "width 0.5s", boxShadow: `0 0 6px ${AGE_COLORS[age]}60` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* conversion + role row */}
         <div style={{ display: "flex", gap: "1vw", marginBottom: "1.2vh", flexWrap: "wrap" }}>
@@ -814,11 +874,13 @@ export default function Dashboard() {
 
             {/* header note */}
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "14px 20px" }}>
-              <div style={S.chartTitle}>H1: Age Group vs QR Code Engagement Risk</div>
+              <div style={S.chartTitle}>Age Group vs QR Code Engagement Risk</div>
               <p style={{ fontSize: 11, color: C.muted, fontFamily: "monospace", marginTop: 6, lineHeight: 1.6 }}>
-                Testing whether younger individuals engage more deeply with QR-based phishing simulations than older individuals.
-                Risk score is derived from deepest engagement stage (Survey=100, Password=90, Download=70, Email=40).
-                Chi-Square Test of Independence will be applied once data collection is complete.
+                <span style={{ color: C.white, fontWeight: 700 }}>H0:</span> No significant relationship between age and QR engagement. &nbsp;|&nbsp;
+                <span style={{ color: C.green2, fontWeight: 700 }}>H1:</span> There IS a significant relationship between age and QR engagement. &nbsp;|&nbsp;
+                <span style={{ color: C.green2, fontWeight: 700 }}>H1a:</span> Younger individuals are more vulnerable. &nbsp;|&nbsp;
+                <span style={{ color: C.red, fontWeight: 700 }}>H1b:</span> Older individuals are more vulnerable.
+                &nbsp; The data will determine which direction is supported. Chi-Square Test of Independence · α = .05
               </p>
             </div>
 
