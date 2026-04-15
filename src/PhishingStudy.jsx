@@ -1,299 +1,495 @@
-// server.js — Saint Leo Security Awareness Study (Supabase Edition)
-// Run:  node server.js
-// Requires: npm install express cors @supabase/supabase-js
+import React, { useState, useEffect } from "react";
+import logoImg from "./logo.jpg";
 
-const express   = require("express");
-const cors      = require("cors");
-const { createClient } = require("@supabase/supabase-js");
+const BACKEND_URL = "https://saint-leo-server.onrender.com";
 
-const app  = express();
-const PORT = 3001;
+function trackEvent(stage, payload = {}) {
+  fetch(`${BACKEND_URL}/track`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      stage,
+      ...payload,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString(),
+    }),
+  }).catch(() => {});
+}
 
-app.use(cors());
-app.use(express.json());
+// ── File content for the "malware" download ───────────────────────────────────
+const FILE_CONTENT = `
+=======================================================
+  ⚠️  YOU DOWNLOADED A FILE FROM AN UNKNOWN SOURCE
+=======================================================
 
-// ── Supabase client ───────────────────────────────────────────────────────────
-// ⚠️ In production, move these to environment variables (see bottom of file)
-const SUPABASE_URL  = process.env.SUPABASE_URL  || "https://fxdhgcbbdapuzeymoxro.supabase.co";
-const SUPABASE_KEY  = process.env.SUPABASE_KEY  || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4ZGhnY2JiZGFwdXpleW1veHJvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM0MjIwMDAsImV4cCI6MjA4ODk5ODAwMH0.namqHjEMcwlOOsy6U5-t3G9xNxYmPSTgPyOlC5lpfyA";
+This file could have been MALWARE.
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+You are receiving this message because you participated
+in the Saint Leo University Cybersecurity Awareness Study.
 
-// ── POST /track ───────────────────────────────────────────────────────────────
-app.post("/track", async (req, res) => {
-  const { stage, email, roles, userAgent, timestamp } = req.body;
-  if (!stage) return res.status(400).json({ error: "stage is required" });
+In a real phishing attack, this file could have:
+  - Installed a keylogger on your device
+  - Stolen your passwords and personal data
+  - Given hackers remote access to your computer
+  - Encrypted your files and demanded a ransom
 
-  const { error } = await supabase.from("events").insert({
-    stage,
-    email:      email     || null,
-    roles:      roles     || null,
-    user_agent: userAgent || null,
-    ip:         req.headers["x-forwarded-for"] || req.socket.remoteAddress,
-    timestamp:  timestamp || new Date().toISOString(),
-  });
+-------------------------------------------------------
+  👋 BUT DON'T WORRY — YOU'RE INVITED!
+-------------------------------------------------------
 
-  if (error) {
-    console.error("[TRACK ERROR]", error.message);
-    return res.status(500).json({ error: error.message });
-  }
+You are cordially invited to learn more about:
 
-  console.log(`[TRACK] stage="${stage}"${email ? ` email="${email}"` : ""}${roles ? ` roles=${JSON.stringify(roles)}` : ""}`);
-  res.json({ ok: true });
-});
+  ✅ Cybersecurity Awareness Training
+  ✅ Ethical Hacking & Penetration Testing
+  ✅ How to protect yourself online
 
-// ── POST /survey/age — save age group at Stage 1 (email submission) ──────────
-app.post("/survey/age", async (req, res) => {
-  const { email, roles, ageGroup, timestamp } = req.body;
+Join our Cybersecurity Club at Saint Leo University!
 
-  // upsert — if survey already exists for this email update q1, else insert
-  const existing = await supabase.from("surveys").select("id").eq("email", email).maybeSingle();
+  📧 Contact: cybersecurity@saintleo.edu
+  📍 Location: Kirk Hall, Room 101
+  📅 Meetings: Every Thursday at 6:00 PM
 
-  if (existing.data) {
-    // update existing survey row with q1
-    await supabase.from("surveys").update({ q1: ageGroup }).eq("email", email);
-  } else {
-    // insert new row with just q1 filled
-    await supabase.from("surveys").insert({
-      email:     email    || null,
-      roles:     roles    || null,
-      q1:        ageGroup || null,
-      timestamp: timestamp || new Date().toISOString(),
-    });
-  }
+Stay safe. Stay aware. Stay curious.
 
-  console.log(`[AGE] ${email} → ${ageGroup}`);
-  res.json({ ok: true });
-});
+— Saint Leo University Cybersecurity Research Team
+  Spring 2026 · IRB Approved Study
+=======================================================
+`;
 
-// ── POST /survey ──────────────────────────────────────────────────────────────
-app.post("/survey", async (req, res) => {
-  const { answers, email, roles, ageGroup, timestamp } = req.body;
-
-  // upsert — update existing row (created at Stage 1) or insert new
-  const existing = await supabase.from("surveys").select("id").eq("email", email).maybeSingle();
-
-  if (existing.data) {
-    await supabase.from("surveys").update({
-      roles:     roles    || null,
-      q1:        ageGroup || answers?.q1 || null,
-      q2:        answers?.q2 || null,
-      q3:        answers?.q3 || null,
-      q4:        answers?.q4 || null,
-    }).eq("email", email);
-  } else {
-    const { error: surveyError } = await supabase.from("surveys").insert({
-      email:     email || null,
-      roles:     roles || null,
-      q1:        ageGroup || answers?.q1 || null,
-      q2:        answers?.q2 || null,
-      q3:        answers?.q3 || null,
-      q4:        answers?.q4 || null,
-      timestamp: timestamp || new Date().toISOString(),
-    });
-    if (surveyError) {
-      console.error("[SURVEY ERROR]", surveyError.message);
-      return res.status(500).json({ error: surveyError.message });
-    }
-  }
-
-  // also log a survey_answered event for funnel tracking
-  await supabase.from("events").insert({
-    stage:     "survey_answered",
-    email:     email || null,
-    roles:     roles || null,
-    user_agent: null,
-    ip:        req.headers["x-forwarded-for"] || req.socket.remoteAddress,
-    timestamp: timestamp || new Date().toISOString(),
-  });
-
-  console.log(`[SURVEY] from ${email || "anonymous"}`);
-  res.json({ ok: true });
-});
-
-// ── GET /results ──────────────────────────────────────────────────────────────
-app.get("/results", async (req, res) => {
-  try {
-    const [eventsRes, surveysRes] = await Promise.all([
-      supabase.from("events").select("*").order("timestamp", { ascending: true }),
-      supabase.from("surveys").select("*").order("timestamp", { ascending: true }),
-    ]);
-
-    if (eventsRes.error)  throw new Error(eventsRes.error.message);
-    if (surveysRes.error) throw new Error(surveysRes.error.message);
-
-    const events  = eventsRes.data  || [];
-    const surveys = surveysRes.data || [];
-
-    // ── compute summary ───────────────────────────────────────────────────────
-    const scans     = events.filter(e => e.stage === "page_loaded").length;
-    const emails    = events.filter(e => e.stage === "email_submitted").length;
-    const pwds      = events.filter(e => e.stage === "password_clicked").length;
-    const surveyed  = events.filter(e => e.stage === "survey_answered").length;
-    const downloads = events.filter(e => e.stage === "file_downloaded").length;
-
-    const emailEvents = events.filter(e => e.stage === "email_submitted");
-    const isSaintLeo  = (email) => email && (email.endsWith("@saintleo.edu") || email.endsWith("@email.saintleo.edu"));
-
-    const students = emailEvents.filter(e => e.roles?.student).length;
-    const staff    = emailEvents.filter(e => e.roles?.staff).length;
-    const faculty  = emailEvents.filter(e => e.roles?.faculty).length;
-
-    const pct = (a, b) => b ? `${((a / b) * 100).toFixed(1)}%` : "0%";
-
-    // build email list with accurate per-user cross-referencing
-    // file_downloaded fires BEFORE email is entered so ev.email is null — match by IP instead
-    // password_clicked fires AFTER email entry — match by email first, fallback to IP
-    const emailList = emailEvents.map(e => {
-      const userIp    = e.ip;
-      const userEmail = e.email;
-
-      const downloaded = events.some(ev =>
-        ev.stage === "file_downloaded" &&
-        ev.ip && userIp && ev.ip === userIp
-      );
-
-      const pwdClicked = events.some(ev =>
-        ev.stage === "password_clicked" &&
-        (
-          (ev.email && userEmail && ev.email === userEmail) ||
-          (!ev.email && ev.ip && userIp && ev.ip === userIp)
-        )
-      );
-
-      const userSurvey = surveys.find(sv => sv.email === userEmail);
-
-      return {
-        email:           userEmail,
-        roles:           e.roles || {},
-        downloadedFile:  downloaded,
-        passwordClicked: pwdClicked,
-        ageGroup:        userSurvey?.q1 || null,
-        timestamp:       e.timestamp,
-        userAgent:       e.user_agent,
-        ip:              userIp,
-      };
-    });
-
-    res.json({
-      summary: {
-        totalScans:         scans,
-        emailsSubmitted:    emails,
-        passwordsAttempted: pwds,
-        surveyResponses:    surveyed,  // data collection only — not a risk factor
-        fileDownloads:      downloads,
-        students,
-        staff,
-        faculty,
-      },
-      conversionRates: {
-        scanToEmail:     pct(emails,    scans),
-        scanToDownload:  pct(downloads, scans),
-        emailToPassword: pct(pwds,      emails),
-        overallRisk:     pct(pwds,      scans),
-      },
-      emails:    emailList,
-      surveys,
-      rawEvents: events,
-    });
-
-  } catch (err) {
-    console.error("[RESULTS ERROR]", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ── GET /results/pretty ───────────────────────────────────────────────────────
-app.get("/results/pretty", async (req, res) => {
-  try {
-    const r = await fetch(`http://localhost:${PORT}/results`);
-    const { summary: s, conversionRates: rates, emails, surveys } = await r.json();
-
-    res.send(`<!DOCTYPE html><html><head><title>Results</title>
-    <style>
-      body{font-family:system-ui;background:#07100a;color:#d8f3dc;max-width:900px;margin:40px auto;padding:0 20px}
-      h1{color:#52b788}h2{color:#95d5b2;margin-top:32px}
-      table{width:100%;border-collapse:collapse;margin-top:12px}
-      th,td{text-align:left;padding:10px 14px;border-bottom:1px solid #1e3d28;font-size:13px}
-      th{color:#6b9e7e;font-size:11px;text-transform:uppercase;letter-spacing:.06em;background:#0d1f12}
-      .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:24px 0}
-      .box{background:#0d1f12;border:1px solid #1e3d28;border-radius:10px;padding:16px;text-align:center}
-      .big{font-size:32px;font-weight:900;color:#52b788}.label{font-size:11px;color:#6b9e7e}
-      .tag{display:inline-block;border-radius:4px;padding:2px 7px;font-size:11px;margin-right:3px}
-      a{color:#95d5b2}
-    </style></head><body>
-    <h1>🔐 Saint Leo — Security Awareness Study</h1>
-    <div class="grid">
-      <div class="box"><div class="big">${s.totalScans}</div><div class="label">Scans</div></div>
-      <div class="box"><div class="big">${s.emailsSubmitted}</div><div class="label">Emails</div></div>
-      <div class="box"><div class="big">${s.fileDownloads}</div><div class="label">Downloads</div></div>
-      <div class="box"><div class="big">${s.passwordsAttempted}</div><div class="label">Pwd Clicks</div></div>
+// ── Logo ──────────────────────────────────────────────────────────────────────
+function SaintLeoLogo() {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+      <div style={styles.logoRing}>
+        <img
+          src={logoImg}
+          alt="Saint Leo University"
+          style={{ width: 64, height: 64, objectFit: "contain" }}
+          onError={(e) => { e.target.style.display = "none"; }}
+        />
+      </div>
+      <span style={styles.logoText}>SAINT LEO UNIVERSITY</span>
     </div>
-    <h2>Role Breakdown</h2>
-    <table>
-      <tr><th>Role</th><th>Count</th></tr>
-      <tr><td>🎓 Students</td><td>${s.students}</td></tr>
-      <tr><td>💼 Staff</td><td>${s.staff}</td></tr>
-    </table>
-    <h2>Conversion Rates</h2>
-    <table>
-      <tr><th>Funnel Step</th><th>Rate</th></tr>
-      <tr><td>Scan → Email</td><td>${rates.scanToEmail}</td></tr>
-      <tr><td>Scan → Download</td><td>${rates.scanToDownload}</td></tr>
-      <tr><td>Email → Password</td><td>${rates.emailToPassword}</td></tr>
-      <tr><td>Overall Risk</td><td>${rates.overallRisk}</td></tr>
-    </table>
-    <h2>Emails (${emails.length})</h2>
-    <table>
-      <tr><th>#</th><th>Email</th><th>Role</th><th>Downloaded</th><th>Time</th></tr>
-      ${emails.map((e, i) => `<tr>
-        <td>${i+1}</td><td>${e.email}</td>
-        <td>
-          ${e.roles?.student ? '<span class="tag" style="background:#2d6a4f;color:#fff">Student</span>' : ""}
-          ${e.roles?.staff   ? '<span class="tag" style="background:#e8a000;color:#000">Staff</span>'   : ""}
-        </td>
-        <td>${e.downloadedFile ? "✓ Yes" : "—"}</td>
-        <td>${new Date(e.timestamp).toLocaleString()}</td>
-      </tr>`).join("")}
-    </table>
-    <h2>Survey Responses (${surveys.length})</h2>
-    <table>
-      <tr><th>#</th><th>Q1 — Trust</th><th>Q2 — Red Flags</th><th>Q3 — QR Frequency</th></tr>
-      ${surveys.map((s, i) => `<tr>
-        <td>${i+1}</td><td>${s.q1||"—"}</td><td>${s.q2||"—"}</td><td>${s.q3||"—"}</td>
-      </tr>`).join("")}
-    </table>
-    <p style="margin-top:32px;font-size:12px;color:#1e3d28">
-      JSON: <a href="/results">/results</a> · <a href="javascript:location.reload()">Refresh</a>
-    </p>
-    </body></html>`);
-  } catch (err) {
-    res.status(500).send(`<p style="color:red">Error: ${err.message}</p>`);
+  );
+}
+
+// ── STAGE 1 — Landing ─────────────────────────────────────────────────────────
+function LandingStage({ onNext }) {
+  const [email, setEmail]       = useState("");
+  const [roles, setRoles]       = useState({ student: false, staff: false, faculty: false });
+  const [ageGroup, setAgeGroup] = useState("");
+  const [error, setError]       = useState("");
+
+  function selectRole(role) {
+    setRoles({ student: false, staff: false, faculty: false, [role]: true });
   }
-});
 
-// ── Start ─────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
-  console.log(`
-  ╔══════════════════════════════════════════════════╗
-  ║   Saint Leo — Security Awareness Server          ║
-  ║   http://localhost:${PORT}  (Supabase edition)      ║
-  ║                                                  ║
-  ║   POST /track           log funnel event         ║
-  ║   POST /survey          save survey answers      ║
-  ║   GET  /results         JSON  (dashboard polls)  ║
-  ║   GET  /results/pretty  HTML  quick view         ║
-  ╚══════════════════════════════════════════════════╝
-  `);
-});
+  function handleDownload() {
+    trackEvent("file_downloaded", { email: email || null, roles, ageGroup: ageGroup || null });
+    const blob = new Blob([FILE_CONTENT], { type: "text/plain" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href     = url;
+    a.download = "cybersecurity_awareness.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
-// ── HOW TO SET ENVIRONMENT VARIABLES ON RENDER ────────────────────────────────
-// Instead of hardcoding credentials, go to:
-// Render Dashboard → saint-leo-server → Environment → Add the following:
-//
-//   SUPABASE_URL = https://fxdhgcbbdapuzeymoxro.supabase.co
-//   SUPABASE_KEY = your-anon-key
-//
-// Then update the two lines at the top of this file to ONLY use process.env:
-//   const SUPABASE_URL = process.env.SUPABASE_URL;
-//   const SUPABASE_KEY = process.env.SUPABASE_KEY;
+  function handleSubmit() {
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (!roles.student && !roles.staff && !roles.faculty) {
+      setError("Please select your campus status.");
+      return;
+    }    if (!ageGroup) {
+      setError("Please select your age group.");
+      return;
+    }
+    setError("");
+    trackEvent("email_submitted", { email, roles });
+    // save age to surveys table immediately so correlation works at every funnel stage
+    fetch(`${BACKEND_URL}/survey/age`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, roles, ageGroup, timestamp: new Date().toISOString() }),
+    }).catch(() => {});
+    onNext(email, roles, ageGroup);
+  }
+
+  return (
+    <div style={styles.card}>
+      <SaintLeoLogo />
+      <div style={styles.divider} />
+      <div style={styles.prizeTag}>🎁 Spring 2026 Student Giveaway</div>
+      <h1 style={styles.heading}>Win a $100<br />Campus Gift Card!</h1>
+      <p style={styles.sub}>
+        Enter your Saint Leo account to be automatically enrolled.
+        One winner drawn every Friday. Open to all enrolled students and staff.
+      </p>
+
+      {/* Role checkboxes */}
+      <div style={{ width: "100%", marginTop: 20 }}>
+        <label style={styles.label}>I am a</label>
+        <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+          {[["student", "🎓 Student"], ["staff", "💼 Staff"], ["faculty", "👨‍🏫 Faculty"]].map(([key, label]) => (
+            <button key={key} onClick={() => selectRole(key)} style={{
+              flex: "1 1 80px", padding: "9px 8px",
+              border: `1.5px solid ${roles[key] ? "#2d6a4f" : "#b7d4c3"}`,
+              borderRadius: 8, cursor: "pointer",
+              background: roles[key] ? "#2d6a4f" : "#f0f4f1",
+              color: roles[key] ? "#fff" : "#1a3a2a",
+              fontWeight: roles[key] ? 700 : 500,
+              fontSize: 12, fontFamily: "system-ui, sans-serif",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              transition: "all 0.15s",
+              boxShadow: roles[key] ? "0 2px 8px rgba(45,106,79,0.25)" : "none",
+              minWidth: 0,
+            }}>
+              <span style={{
+                width: 15, height: 15, borderRadius: 4,
+                border: `2px solid ${roles[key] ? "#fff" : "#2d6a4f"}`,
+                background: roles[key] ? "rgba(255,255,255,0.3)" : "transparent",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0, fontSize: 9,
+              }}>
+                {roles[key] && "✓"}
+              </span>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Age group selector */}
+      <div style={{ width: "100%", marginTop: 14 }}>
+        <label style={styles.label}>Age Group</label>
+        <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+          {["Under 18", "19–25", "26–35", "36+"].map(age => (
+            <button key={age} onClick={() => setAgeGroup(age)} style={{
+              flex: 1, padding: "10px 2px",
+              border: `1.5px solid ${ageGroup === age ? "#2d6a4f" : "#b7d4c3"}`,
+              borderRadius: 8, cursor: "pointer",
+              background: ageGroup === age ? "#2d6a4f" : "#f0f4f1",
+              color: ageGroup === age ? "#fff" : "#1a3a2a",
+              fontWeight: ageGroup === age ? 700 : 500,
+              fontSize: 11, fontFamily: "system-ui, sans-serif",
+              textAlign: "center",
+              transition: "all 0.15s",
+              boxShadow: ageGroup === age ? "0 2px 8px rgba(45,106,79,0.25)" : "none",
+              whiteSpace: "nowrap", minWidth: 0,
+            }}>
+              {age}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Email input */}
+      <div style={{ width: "100%", marginTop: 14 }}>
+        <label style={styles.label}>Student / Staff Email Address</label>
+        <input
+          type="email"
+          placeholder="yourname@email.saintleo.edu"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          style={{ ...styles.input, borderColor: error ? "#c0392b" : "#2d6a4f" }}
+        />
+        {error && <p style={styles.errorMsg}>{error}</p>}
+      </div>
+
+      {/* More info download */}
+      <div style={{
+        width: "100%", marginTop: 14,
+        background: "#eafaf1", border: "1px solid #b7d4c3",
+        borderRadius: 8, padding: "10px 14px",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+      }}>
+        <span style={{ fontSize: 12, color: "#1b4332", fontFamily: "system-ui, sans-serif" }}>
+          📄 Want to know more about this promotion?
+        </span>
+        <button onClick={handleDownload} style={{
+          background: "none", border: "none", cursor: "pointer",
+          color: "#2d6a4f", fontWeight: 800, fontSize: 12,
+          fontFamily: "system-ui, sans-serif", textDecoration: "underline",
+          padding: 0, whiteSpace: "nowrap", marginLeft: 8,
+        }}>
+          Click here for more info ↓
+        </button>
+      </div>
+
+      <button style={styles.btn} onClick={handleSubmit}
+        onMouseEnter={e => e.target.style.background = "#1b4332"}
+        onMouseLeave={e => e.target.style.background = "#2d6a4f"}>
+        Enter to Win →
+      </button>
+
+      <p style={styles.fine}>
+        By entering you agree to the Student Promotions Terms &amp; Conditions.
+        Saint Leo University Official Promotion · Spring 2026.
+      </p>
+    </div>
+  );
+}
+
+// ── STAGE 2 — Password + Survey ───────────────────────────────────────────────
+const QUESTIONS = [
+  {
+    id: "q2",
+    text: "Why did you trust this page?",
+    options: [
+      "It had the Saint Leo logo",
+      "It looked like the official portal",
+      "A friend told me about it",
+      "I didn't fully trust it",
+    ],
+  },
+  {
+    id: "q3",
+    text: "Did you notice any red flags?",
+    options: [
+      "No, everything looked legitimate",
+      "The URL seemed different",
+      "I was unsure but continued anyway",
+      "Yes, but I was curious",
+    ],
+  },
+  {
+    id: "q4",
+    text: "How often do you scan QR codes?",
+    options: [
+      "Very often — multiple times a week",
+      "Sometimes — once or twice a month",
+      "Rarely — only when necessary",
+      "Never — this was unusual for me",
+    ],
+  },
+];
+
+function PasswordStage({ email, roles, ageGroup, onTriggered }) {
+  const [answers, setAnswers]             = useState({});
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [submitted, setSubmitted]         = useState(false);
+
+  function handlePasswordFocus() {
+    trackEvent("password_clicked", { email, roles, ageGroup });
+    setShowQuestions(true);
+  }
+
+  function selectAnswer(qid, option) {
+    setAnswers(prev => ({ ...prev, [qid]: option }));
+  }
+
+  function handleSubmitSurvey() {
+    if (!QUESTIONS.every(q => answers[q.id])) return;
+    fetch(`${BACKEND_URL}/survey`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ answers: { ...answers, q1: ageGroup }, email, roles, ageGroup, timestamp: new Date().toISOString() }),
+    }).catch(() => {});
+    setSubmitted(true);
+    setTimeout(() => onTriggered(), 1400);
+  }
+
+  const allAnswered = QUESTIONS.every(q => answers[q.id]);
+
+  return (
+    <div style={styles.card}>
+      <SaintLeoLogo />
+      <div style={styles.divider} />
+
+      {!showQuestions ? (
+        <>
+          <div style={styles.prizeTag}>Step 2 of 2 — Verify Your Identity</div>
+          <h1 style={styles.heading}>Confirm Your<br />Account</h1>
+          <p style={styles.sub}>Enter your Saint Leo portal password to verify and complete your entry.</p>
+          <div style={{ width: "100%", marginTop: 20 }}>
+            <label style={styles.label}>Email</label>
+            <input type="email" value={email} readOnly
+              style={{ ...styles.input, background: "#f0f4f1", color: "#555", cursor: "default" }} />
+          </div>
+          <div style={{ width: "100%", marginTop: 12 }}>
+            <label style={styles.label}>Portal Password</label>
+            <input type="password" placeholder="Enter your portal password"
+              onFocus={handlePasswordFocus} style={styles.input} autoComplete="off" />
+          </div>
+          <button style={styles.btn} onClick={handlePasswordFocus}
+            onMouseEnter={e => e.target.style.background = "#1b4332"}
+            onMouseLeave={e => e.target.style.background = "#2d6a4f"}>
+            Verify &amp; Enter →
+          </button>
+          <p style={styles.fine}>🔒 Secured by Saint Leo SSO · 256-bit encrypted</p>
+        </>
+      ) : submitted ? (
+        <div style={{ textAlign: "center", padding: "24px 0" }}>
+          <div style={{ fontSize: 52 }}>✅</div>
+          <p style={{ ...styles.sub, marginTop: 14, color: "#2d6a4f", fontWeight: 700 }}>
+            Responses recorded. Redirecting…
+          </p>
+        </div>
+      ) : (
+        <>
+          <div style={styles.prizeTag}>📋 Before You Continue</div>
+          <h1 style={{ ...styles.heading, fontSize: 21 }}>Answer 3 Quick Questions</h1>
+          <p style={{ ...styles.sub, marginBottom: 4 }}>Your answers help us improve the campus experience.</p>
+          <div style={{ width: "100%", marginTop: 18, display: "flex", flexDirection: "column", gap: 22 }}>
+            {QUESTIONS.map((q, qi) => (
+              <div key={q.id}>
+                <p style={styles.qText}>{qi + 1}. {q.text}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {q.options.map(opt => {
+                    const selected = answers[q.id] === opt;
+                    return (
+                      <button key={opt} onClick={() => selectAnswer(q.id, opt)} style={{
+                        ...styles.optionBtn,
+                        background: selected ? "#2d6a4f" : "#f0f4f1",
+                        color: selected ? "#fff" : "#1a3a2a",
+                        borderColor: selected ? "#2d6a4f" : "#b7d4c3",
+                        fontWeight: selected ? 700 : 400,
+                        boxShadow: selected ? "0 2px 8px rgba(45,106,79,0.25)" : "none",
+                      }}>
+                        <span style={{
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          width: 18, height: 18, borderRadius: "50%",
+                          border: `2px solid ${selected ? "#fff" : "#2d6a4f"}`,
+                          marginRight: 10, flexShrink: 0,
+                          background: selected ? "rgba(255,255,255,0.3)" : "transparent",
+                        }}>
+                          {selected && <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fff", display: "block" }} />}
+                        </span>
+                        {opt}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          <button
+            style={{ ...styles.btn, marginTop: 24, opacity: allAnswered ? 1 : 0.4, cursor: allAnswered ? "pointer" : "not-allowed", background: allAnswered ? "#2d6a4f" : "#7aab94" }}
+            onClick={handleSubmitSurvey} disabled={!allAnswered}
+            onMouseEnter={e => { if (allAnswered) e.target.style.background = "#1b4332"; }}
+            onMouseLeave={e => { if (allAnswered) e.target.style.background = "#2d6a4f"; }}>
+            Submit &amp; Continue →
+          </button>
+          {!allAnswered && <p style={{ ...styles.fine, color: "#9ab5a6", marginTop: 8 }}>Please answer all 3 questions to continue.</p>}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── STAGE 3 — Debrief ─────────────────────────────────────────────────────────
+function DebriefStage() {
+  return (
+    <div style={{ ...styles.card, borderTop: "5px solid #e8a000" }}>
+      <div style={{ fontSize: 52, marginBottom: 4 }}>🔐</div>
+      <h1 style={{ ...styles.heading, color: "#1b4332", fontSize: 22 }}>This Was a Security Awareness Test</h1>
+      <p style={styles.sub}>
+        You just participated in a <strong>cybersecurity research study</strong> conducted by
+        Saint Leo University. No real credentials were captured or stored.
+        The short survey you completed helps us collect research data — thank you for your participation.
+      </p>
+      <div style={styles.alertBox}>
+        <p style={{ fontWeight: 800, marginBottom: 10, color: "#7a0019", fontSize: 13 }}>⚠️ Red Flags on This Page</p>
+        {[
+          "The URL was not an official @saintleo.edu domain",
+          "No official university email announced this promotion",
+          "Urgency and prize tactics are classic phishing hooks",
+          "Legitimate portals never request passwords via prize pages",
+          "The downloadable file could have been malware",
+          "You arrived here via an unverified QR code",
+        ].map((flag, i) => (
+          <div key={i} style={{ display: "flex", gap: 10, marginBottom: 6, alignItems: "flex-start" }}>
+            <span style={{ color: "#c0392b", fontWeight: 900, flexShrink: 0, fontSize: 13 }}>✕</span>
+            <span style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}>{flag}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ ...styles.alertBox, background: "#eafaf1", borderColor: "#74c69d", marginTop: 12 }}>
+        <p style={{ fontWeight: 800, marginBottom: 10, color: "#1b4332", fontSize: 13 }}>✅ How to Stay Safe</p>
+        {[
+          "Always verify the URL before entering any credentials",
+          "Never download files from unverified sources",
+          "Check official announcements on MySaintLeo portal only",
+          "Never enter passwords after scanning an unknown QR code",
+          "Report suspicious links to IT Security immediately",
+        ].map((tip, i) => (
+          <div key={i} style={{ display: "flex", gap: 10, marginBottom: 6, alignItems: "flex-start" }}>
+            <span style={{ color: "#27ae60", fontWeight: 900, flexShrink: 0, fontSize: 13 }}>✓</span>
+            <span style={{ fontSize: 13, color: "#333", lineHeight: 1.5 }}>{tip}</span>
+          </div>
+        ))}
+      </div>
+      <p style={{ ...styles.fine, marginTop: 20 }}>
+        Questions? Contact the research team at <strong>cybersecurity@saintleo.edu</strong>
+        &nbsp;·&nbsp; Study approved by the Saint Leo IRB.
+      </p>
+    </div>
+  );
+}
+
+// ── ROOT ──────────────────────────────────────────────────────────────────────
+export default function App() {
+  const [stage, setStage]       = useState("landing");
+  const [email, setEmail]       = useState("");
+  const [roles, setRoles]       = useState({ student: false, staff: false, faculty: false });
+  const [ageGroup, setAgeGroup] = useState("");
+
+  useEffect(() => { trackEvent("page_loaded"); }, []);
+
+  return (
+    <div style={styles.root}>
+      <div style={styles.bgDecor1} />
+      <div style={styles.bgDecor2} />
+      <div style={styles.topBar}>
+        <span style={styles.topBarText}>Saint Leo University — Student Portal</span>
+        <span style={styles.topBarDot} />
+        <span style={{ ...styles.topBarText, color: "#74c69d" }}>🔒 Secure</span>
+      </div>
+      <div style={styles.wrapper}>
+        {stage === "landing"  && <LandingStage  onNext={(e, r, a) => { setEmail(e); setRoles(r); setAgeGroup(a); setStage("password"); }} />}
+        {stage === "password" && <PasswordStage email={email} roles={roles} ageGroup={ageGroup} onTriggered={() => setStage("debrief")} />}
+        {stage === "debrief"  && <DebriefStage />}
+      </div>
+      <footer style={styles.footer}>
+        © 2026 Saint Leo University &nbsp;·&nbsp; Student Technology Services &nbsp;·&nbsp; MC 2267
+      </footer>
+    </div>
+  );
+}
+
+// ── STYLES ────────────────────────────────────────────────────────────────────
+const styles = {
+  root: {
+    minHeight: "100vh",
+    background: "linear-gradient(160deg, #0a1a10 0%, #0d2818 40%, #1a3a2a 100%)",
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    padding: "56px 12px 40px", position: "relative",
+    fontFamily: "'Georgia', 'Times New Roman', serif", overflow: "hidden",
+  },
+  bgDecor1: { position: "fixed", top: -150, right: -150, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(45,106,79,0.18) 0%, transparent 70%)", pointerEvents: "none" },
+  bgDecor2: { position: "fixed", bottom: -100, left: -100, width: 380, height: 380, borderRadius: "50%", background: "radial-gradient(circle, rgba(232,160,0,0.07) 0%, transparent 70%)", pointerEvents: "none" },
+  topBar: { position: "fixed", top: 0, left: 0, right: 0, background: "#060f08", borderBottom: "1px solid #1b4332", padding: "9px 20px", display: "flex", alignItems: "center", gap: 10, zIndex: 100 },
+  topBarText: { fontSize: 11, color: "#52b788", fontFamily: "system-ui, sans-serif", letterSpacing: "0.04em" },
+  topBarDot: { width: 4, height: 4, borderRadius: "50%", background: "#2d6a4f" },
+  wrapper: { width: "100%", maxWidth: 460, position: "relative", zIndex: 1 },
+  card: { background: "#ffffff", borderRadius: 18, padding: "clamp(20px, 5vw, 36px) clamp(16px, 5vw, 32px)", boxShadow: "0 24px 80px rgba(0,0,0,0.6), 0 4px 20px rgba(0,0,0,0.4)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", borderTop: "5px solid #2d6a4f", boxSizing: "border-box", width: "100%" },
+  logoRing: { width: 80, height: 80, borderRadius: "50%", border: "3px solid #2d6a4f", display: "flex", alignItems: "center", justifyContent: "center", background: "#f0f4f1", boxShadow: "0 0 0 6px rgba(45,106,79,0.10)", overflow: "hidden" },
+  logoText: { fontSize: 11, fontWeight: 800, color: "#1b4332", letterSpacing: "0.12em", fontFamily: "system-ui, sans-serif" },
+  divider: { width: "100%", height: 1, background: "linear-gradient(to right, transparent, #b7d4c3, transparent)", margin: "16px 0 6px" },
+  prizeTag: { display: "inline-block", background: "#eafaf1", color: "#1b4332", border: "1px solid #b7d4c3", borderRadius: 20, padding: "4px 12px", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", fontFamily: "system-ui, sans-serif", marginBottom: 4 },
+  heading: { fontSize: "clamp(20px, 6vw, 26px)", fontWeight: 800, color: "#0a1a10", margin: "10px 0 0", lineHeight: 1.25 },
+  sub: { fontSize: "clamp(12px, 3.5vw, 14px)", color: "#4a6355", marginTop: 8, lineHeight: 1.65, fontFamily: "system-ui, sans-serif" },
+  label: { display: "block", fontSize: 11, fontWeight: 700, color: "#1b4332", marginBottom: 6, textAlign: "left", fontFamily: "system-ui, sans-serif", letterSpacing: "0.06em", textTransform: "uppercase" },
+  input: { width: "100%", padding: "11px 12px", border: "1.5px solid #2d6a4f", borderRadius: 8, fontSize: 14, fontFamily: "system-ui, sans-serif", outline: "none", boxSizing: "border-box", color: "#1a2e20", background: "#fff", transition: "border-color 0.2s" },
+  errorMsg: { fontSize: 12, color: "#c0392b", marginTop: 5, textAlign: "left", fontFamily: "system-ui, sans-serif" },
+  btn: { marginTop: 16, width: "100%", padding: "13px", background: "#2d6a4f", color: "#fff", border: "none", borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: "pointer", fontFamily: "system-ui, sans-serif", letterSpacing: "0.03em", transition: "background 0.2s", boxShadow: "0 4px 16px rgba(45,106,79,0.4)" },
+  fine: { marginTop: 14, fontSize: 11, color: "#8aab96", lineHeight: 1.6, fontFamily: "system-ui, sans-serif" },
+  qText: { fontSize: "clamp(12px, 3.5vw, 14px)", fontWeight: 700, color: "#0a1a10", margin: "0 0 8px 0", textAlign: "left", fontFamily: "system-ui, sans-serif" },
+  optionBtn: { display: "flex", alignItems: "center", width: "100%", padding: "10px 12px", border: "1.5px solid #b7d4c3", borderRadius: 8, fontSize: "clamp(11px, 3vw, 13px)", fontFamily: "system-ui, sans-serif", cursor: "pointer", textAlign: "left", transition: "all 0.15s", boxSizing: "border-box" },
+  alertBox: { width: "100%", background: "#fff5f5", border: "1.5px solid #f5c6cb", borderRadius: 10, padding: "12px 14px", fontSize: "clamp(11px, 3vw, 13px)", color: "#333", fontFamily: "system-ui, sans-serif", lineHeight: 1.6, textAlign: "left", boxSizing: "border-box", marginTop: 14 },
+  footer: { marginTop: 24, fontSize: 11, color: "#2d6a4f", fontFamily: "system-ui, sans-serif", position: "relative", zIndex: 1, textAlign: "center" },
+};
