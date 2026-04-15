@@ -166,30 +166,21 @@ function LandingStage({ onNext }) {
       {/* Age group selector */}
       <div style={{ width: "100%", marginTop: 14 }}>
         <label style={styles.label}>Age Group</label>
-        <div style={{ display: "flex", gap: 8, marginTop: 6, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
           {["Under 18", "19–25", "26–35", "36+"].map(age => (
             <button key={age} onClick={() => setAgeGroup(age)} style={{
-              flex: "1 1 60px", padding: "9px 8px",
+              flex: 1, padding: "10px 2px",
               border: `1.5px solid ${ageGroup === age ? "#2d6a4f" : "#b7d4c3"}`,
               borderRadius: 8, cursor: "pointer",
               background: ageGroup === age ? "#2d6a4f" : "#f0f4f1",
               color: ageGroup === age ? "#fff" : "#1a3a2a",
               fontWeight: ageGroup === age ? 700 : 500,
-              fontSize: 12, fontFamily: "system-ui, sans-serif",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              fontSize: 11, fontFamily: "system-ui, sans-serif",
+              textAlign: "center",
               transition: "all 0.15s",
               boxShadow: ageGroup === age ? "0 2px 8px rgba(45,106,79,0.25)" : "none",
-              minWidth: 0,
+              whiteSpace: "nowrap", minWidth: 0,
             }}>
-              <span style={{
-                width: 15, height: 15, borderRadius: "50%",
-                border: `2px solid ${ageGroup === age ? "#fff" : "#2d6a4f"}`,
-                background: ageGroup === age ? "rgba(255,255,255,0.3)" : "transparent",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                flexShrink: 0, fontSize: 9,
-              }}>
-                {ageGroup === age && "✓"}
-              </span>
               {age}
             </button>
           ))}
