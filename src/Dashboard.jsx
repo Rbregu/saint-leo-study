@@ -330,6 +330,95 @@ function UserProfile({ emailData, rawEvents, surveys, onBack }) {
   );
 }
 
+// ── SURVEY QUESTION COMPONENT ─────────────────────────────────────────────────
+// Each answer option is clickable — shows age group breakdown for that answer
+function SurveyQuestion({ title, tally, surveys, qKey, selectedAnswer, onSelect }) {
+  const AGE_ORDER = ["Under 18", "19–25", "26–35", "36+"];
+  const AGE_COLORS = { "Under 18": C.green2, "19–25": C.green3, "26–35": C.gold, "36+": C.red };
+  const total = Object.values(tally).reduce((a, b) => a + b, 0);
+
+  // for selected answer: count how many of each age group chose it
+  const ageBreakdown = selectedAnswer
+    ? AGE_ORDER.map(age => ({
+        age,
+        count: surveys.filter(sv => sv[qKey] === selectedAnswer && sv.q1 === age).length,
+      })).filter(a => a.count > 0)
+    : [];
+
+  return (
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px" }}>
+      <div style={S.chartTitle}>{title}</div>
+      <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginBottom: 14, marginTop: 2 }}>
+        Click an answer to see age group breakdown
+      </div>
+
+      {total === 0 ? (
+        <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 13 }}>No responses yet.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {Object.entries(tally).sort((a, b) => b[1] - a[1]).map(([answer, count]) => {
+            const pct = Math.round((count / total) * 100);
+            const isSelected = selectedAnswer === answer;
+            return (
+              <div key={answer}>
+                {/* Clickable answer bar */}
+                <div
+                  onClick={() => onSelect(answer)}
+                  style={{
+                    cursor: "pointer",
+                    border: `1.5px solid ${isSelected ? C.green2 : C.border}`,
+                    borderRadius: 10,
+                    padding: "10px 14px",
+                    background: isSelected ? C.green1 + "33" : C.surface,
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={e => { if (!isSelected) e.currentTarget.style.borderColor = C.green1; }}
+                  onMouseLeave={e => { if (!isSelected) e.currentTarget.style.borderColor = C.border; }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: isSelected ? C.white : C.text, fontFamily: "monospace", fontWeight: isSelected ? 700 : 400 }}>{answer}</span>
+                    <span style={{ fontSize: 12, color: isSelected ? C.green2 : C.muted, fontFamily: "monospace", fontWeight: 700 }}>{count} ({pct}%)</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: C.border }}>
+                    <div style={{ height: "100%", width: `${pct}%`, background: isSelected ? C.green2 : C.green1, borderRadius: 3, transition: "width 0.5s" }} />
+                  </div>
+                </div>
+
+                {/* Age breakdown — shown inline when selected */}
+                {isSelected && (
+                  <div style={{ background: C.surface, border: `1px solid ${C.green1}`, borderRadius: "0 0 10px 10px", borderTop: "none", padding: "14px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ fontSize: 10, color: C.green2, fontFamily: "monospace", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>
+                      Age group breakdown — who chose this answer:
+                    </div>
+                    {ageBreakdown.length === 0 ? (
+                      <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 11 }}>No age data available for this answer yet.</p>
+                    ) : (
+                      ageBreakdown.map(({ age, count: ac }) => {
+                        const agePct = Math.round((ac / count) * 100);
+                        return (
+                          <div key={age}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                              <span style={{ fontSize: 11, color: AGE_COLORS[age], fontFamily: "monospace", fontWeight: 700 }}>🎂 {age}</span>
+                              <span style={{ fontSize: 11, color: AGE_COLORS[age], fontFamily: "monospace" }}>{ac} respondent{ac > 1 ? "s" : ""} ({agePct}%)</span>
+                            </div>
+                            <div style={{ height: 5, borderRadius: 3, background: C.border }}>
+                              <div style={{ height: "100%", width: `${agePct}%`, background: AGE_COLORS[age], borderRadius: 3, transition: "width 0.5s", boxShadow: `0 0 6px ${AGE_COLORS[age]}60` }} />
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── MAIN DASHBOARD ────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [data, setData]             = useState(null);
@@ -631,137 +720,24 @@ export default function Dashboard() {
         {/* SURVEY */}
         {tab === "survey" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-
-            {/* Survey detail modal */}
-            {selectedSurvey && (
-              <div style={{ background: C.surface, border: `2px solid ${C.green1}`, borderRadius: 14, padding: "20px 24px", position: "relative" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: C.white, fontFamily: "monospace" }}>Survey Detail — {selectedSurvey.email || "Anonymous"}</div>
-                    <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginTop: 2 }}>Individual response with age correlation</div>
-                  </div>
-                  <button onClick={() => setSelectedSurvey(null)} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 6, padding: "5px 12px", color: C.muted, cursor: "pointer", fontSize: 11, fontFamily: "monospace" }}>✕ Close</button>
-                </div>
-
-                {/* Age + Risk correlation for this person */}
-                <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-                  <div style={{ background: C.card, borderRadius: 10, padding: "12px 18px", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: 4 }}>
-                    <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase" }}>Age Group</div>
-                    <div style={{ fontSize: 20, fontWeight: 900, color: C.gold, fontFamily: "monospace" }}>
-                      {selectedSurvey.q1 || "—"}
-                    </div>
-                  </div>
-                  {(() => {
-                    const userEmail = emails.find(e => e.email === selectedSurvey.email);
-                    const risk = userEmail ? calcRisk(userEmail) : null;
-                    return risk ? (
-                      <div style={{ background: C.card, borderRadius: 10, padding: "12px 18px", border: `1px solid ${risk.color}44`, display: "flex", flexDirection: "column", gap: 4 }}>
-                        <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase" }}>Engagement Risk</div>
-                        <div style={{ fontSize: 20, fontWeight: 900, color: risk.color, fontFamily: "monospace" }}>{risk.score}/100 — {risk.label}</div>
-                      </div>
-                    ) : null;
-                  })()}
-                  <div style={{ background: C.card, borderRadius: 10, padding: "12px 18px", border: `1px solid ${C.border}`, display: "flex", flexDirection: "column", gap: 4 }}>
-                    <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase" }}>H1 Direction</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: selectedSurvey.q1 === "19–25" || selectedSurvey.q1 === "Under 18" ? C.green2 : selectedSurvey.q1 === "36+" ? C.red : C.gold, fontFamily: "monospace" }}>
-                      {selectedSurvey.q1 === "19–25" || selectedSurvey.q1 === "Under 18" ? "→ Supports H1a (younger)" : selectedSurvey.q1 === "36+" ? "→ Tests H1b (older)" : "→ Neutral (26–35)"}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Answers */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {[
-                    ["Why did you trust this page?",    selectedSurvey.q2],
-                    ["Did you notice any red flags?",   selectedSurvey.q3],
-                    ["How often do you scan QR codes?", selectedSurvey.q4],
-                  ].map(([q, a]) => (
-                    <div key={q} style={{ background: C.card, borderRadius: 8, padding: "10px 14px", border: `1px solid ${C.border}` }}>
-                      <div style={{ fontSize: 10, color: C.muted, fontFamily: "monospace", marginBottom: 3 }}>{q}</div>
-                      <div style={{ fontSize: 12, color: C.green3, fontFamily: "monospace", fontWeight: 700 }}>{a || "—"}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Individual responses table — clickable */}
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, overflow: "hidden" }}>
-              <div style={{ padding: "14px 20px", borderBottom: `1px solid ${C.border}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={S.chartTitle}>Individual Survey Responses ({surveys.length})</div>
-                <span style={{ fontSize: 10, color: C.muted, fontFamily: "monospace" }}>Click any row to view age correlation ↗</span>
-              </div>
-              {surveys.length === 0 ? (
-                <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 13, padding: 20 }}>No survey responses yet.</p>
-              ) : (
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
-                    <thead>
-                      <tr style={{ background: C.surface }}>
-                        {["#", "Email", "Age Group", "Why trusted?", "Red flags?", "QR frequency"].map(h => (
-                          <th key={h} style={{ padding: "9px 14px", textAlign: "left", fontSize: 10, color: C.muted, fontFamily: "monospace", textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {surveys.map((sv, i) => {
-                        const age = sv.q1;
-                        const ageColor = !age ? C.muted : age === "Under 18" || age === "19–25" ? C.green2 : age === "26–35" ? C.gold : C.red;
-                        const isSelected = selectedSurvey?.email === sv.email;
-                        return (
-                          <tr key={i}
-                            onClick={() => setSelectedSurvey(isSelected ? null : sv)}
-                            style={{ borderTop: `1px solid ${C.border}`, cursor: "pointer", background: isSelected ? C.surface : "transparent", transition: "background 0.15s" }}
-                            onMouseEnter={el => { if (!isSelected) el.currentTarget.style.background = C.surface; }}
-                            onMouseLeave={el => { if (!isSelected) el.currentTarget.style.background = "transparent"; }}>
-                            <td style={S.td}>{i + 1}</td>
-                            <td style={{ ...S.td, color: C.green3, fontSize: 11 }}>
-                              {sv.email || "—"}
-                              <span style={{ marginLeft: 6, fontSize: 10, color: C.muted }}>↗</span>
-                            </td>
-                            <td style={S.td}>
-                              {age ? (
-                                <span style={{ background: ageColor + "22", color: ageColor, border: `1px solid ${ageColor}66`, borderRadius: 5, padding: "2px 9px", fontSize: 10, fontFamily: "monospace", fontWeight: 800 }}>
-                                  🎂 {age}
-                                </span>
-                              ) : <span style={{ color: C.muted, fontSize: 11 }}>—</span>}
-                            </td>
-                            <td style={{ ...S.td, fontSize: 11, color: C.text }}>{sv.q2 || "—"}</td>
-                            <td style={{ ...S.td, fontSize: 11, color: C.text }}>{sv.q3 || "—"}</td>
-                            <td style={{ ...S.td, fontSize: 11, color: C.text }}>{sv.q4 || "—"}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-
-            {/* Aggregate charts */}
             {[
-              { title: "Age Group Distribution",             data: toChart(q1Tally) },
-              { title: "Why did you trust this page?",       data: toChart(q2Tally) },
-              { title: "Did you notice any red flags?",      data: toChart(q3Tally) },
-              { title: "How often do you scan QR codes?",    data: toChart(q4Tally) },
-            ].map((q, qi) => (
-              <div key={qi} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "20px" }}>
-                <div style={S.chartTitle}>{q.title}</div>
-                {q.data.length === 0 ? (
-                  <p style={{ color: C.muted, fontFamily: "monospace", fontSize: 13, marginTop: 12 }}>No responses yet.</p>
-                ) : (
-                  <ResponsiveContainer width="100%" height={180}>
-                    <BarChart data={q.data} layout="vertical" barSize={18} margin={{ left: 10 }}>
-                      <XAxis type="number" tick={{ fill: C.muted, fontSize: 11, fontFamily: "monospace" }} axisLine={false} tickLine={false} allowDecimals={false} />
-                      <YAxis type="category" dataKey="name" width={230} tick={{ fill: C.text, fontSize: 11, fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="value" radius={[0, 6, 6, 0]}>
-                        {q.data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+              { id: "q2", title: "Why did you trust this page?",       tally: q2Tally },
+              { id: "q3", title: "Did you notice any red flags?",      tally: q3Tally },
+              { id: "q4", title: "How often do you scan QR codes?",    tally: q4Tally },
+            ].map(q => (
+              <SurveyQuestion
+                key={q.id}
+                title={q.title}
+                tally={q.tally}
+                surveys={surveys}
+                qKey={q.id}
+                selectedAnswer={selectedSurvey?.qKey === q.id ? selectedSurvey.answer : null}
+                onSelect={(answer) => setSelectedSurvey(
+                  selectedSurvey?.qKey === q.id && selectedSurvey?.answer === answer
+                    ? null
+                    : { qKey: q.id, answer }
                 )}
-              </div>
+              />
             ))}
           </div>
         )}
